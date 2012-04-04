@@ -2,19 +2,36 @@ __global__
 void 
 _CompDist_kernel
 (
-	size_t uThreadOffset,
+	#if	0	// MOD-BY-LEETEN 04/04/2012-FROM:
+		size_t uThreadOffset,
+		int iPoint,
+		float4 	f4Point,
+		size_t	uWidth,
+		size_t	uHeight,
+		size_t	uDepth,
+		float pfDists_device[]
+	#else		// MOD-BY-LEETEN 04/04/2012-TO:
+	unsigned int uThreadOffset,
 	int iPoint,
 	float4 	f4Point,
-	size_t	uWidth,
-	size_t	uHeight,
-	size_t	uDepth,
+	unsigned int uWidth,
+	unsigned int uHeight,
+	unsigned int uDepth,
 	float pfDists_device[]
+	#endif		// MOD-BY-LEETEN 04/04/2012-END
 )
 {
-	size_t uBlock = gridDim.x * blockIdx.y + blockIdx.x;
-	size_t uI = uBlock * blockDim.x + threadIdx.x;
-	size_t uV = uThreadOffset + uI;
-	size_t uNrOfVoxels = uWidth * uHeight * uDepth;
+	#if	0	// MOD-BY-LEETEN 04/04/2012-FROM:
+		size_t uBlock = gridDim.x * blockIdx.y + blockIdx.x;
+		size_t uI = uBlock * blockDim.x + threadIdx.x;
+		size_t uV = uThreadOffset + uI;
+		size_t uNrOfVoxels = uWidth * uHeight * uDepth;
+	#else		// MOD-BY-LEETEN 04/04/2012-TO:
+	unsigned int uBlock = gridDim.x * blockIdx.y + blockIdx.x;
+	unsigned int uI = uBlock * blockDim.x + threadIdx.x;
+	unsigned int uV = uThreadOffset + uI;
+	unsigned int uNrOfVoxels = uWidth * uHeight * uDepth;
+	#endif		// MOD-BY-LEETEN 04/04/2012-END
 
 	if( uV < uNrOfVoxels )
 	{

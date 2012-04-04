@@ -33,24 +33,22 @@ CUDA_ADD_LIBRARY(${PROJECT_NAME}
 #	kernel_CompDistCudpp.h
 )
 
+# ADD-BY-LEETEN 04/04/2012-BEGIN
+set_target_properties(${PROJECT_NAME} PROPERTIES 
+	DEBUG_OUTPUT_NAME "${PROJECT_NAME}_d"
+	RELEASE_OUTPUT_NAME "${PROJECT_NAME}_r"
+	)
+
+install(
+	TARGETS ${PROJECT_NAME}
+	DESTINATION lib	)	
+
+file(GLOB HEADER_FILES "*.h" )
+install(
+	FILES ${HEADER_FILES}
+	DESTINATION "include/")
+# ADD-BY-LEETEN 04/04/2012-END
+
 #
-# $Log: CMakeLists.txt,v $
-# Revision 1.2  2012-03-30 06:00:33  leeten
-#
-# [03/29/2012]
-# <POMCuda_host.cu>
-# <POMCuda.h>
-# 1. [ADD] Include the header assert.h.
-# 2. [ADD] Define functions _PomCompComplexityFree(), _PomCompComplexityInit(), and _PomCompComplexity() to compute the complexity of all POMs on GPUs.
-#
-# <CMakeLists.txt>
-# <kernel_CompComplexity.h>
-# 1. [1ST] Check in the kernel to compute the complexity.
-#
-# Revision 1.1  2012-03-19 18:52:55  leeten
-#
-# [03/19/2012]
-# <CMakeLists.txt>
-# 1. [1ST] Check in the Cmake files, the kernel, the host files, and the C/C+ header for GPU-based computation of POM related metrics.
-#
+# $Log$
 #
