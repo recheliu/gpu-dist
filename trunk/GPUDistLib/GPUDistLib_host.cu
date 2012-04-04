@@ -22,21 +22,23 @@
 #define GRID_DIM_Y	1024
 #define BATCH_SIZE	(BLOCK_DIM_X * BLOCK_DIM_Y * GRID_DIM_X * GRID_DIM_Y)
 
-__constant__ int	iNrOfBasis_const;
-__constant__ int	iNrOfTimeSteps_const;
+#if	0	// DEL-BY-LEETEN 04/04/2012-BEGIN
+	__constant__ int	iNrOfBasis_const;
+	__constant__ int	iNrOfTimeSteps_const;
 
-int iNrOfBasis;
-int iNrOfTimeSteps;
+	int iNrOfBasis;
+	int iNrOfTimeSteps;
 
-//! A 2D texture of the time difference matrices
-cudaPitchedPtr cTimeDiffMatrices_pitched;
-texture<float, 2, cudaReadModeElementType> t2DfTimeDiffMatrices;
+	//! A 2D texture of the time difference matrices
+	cudaPitchedPtr cTimeDiffMatrices_pitched;
+	texture<float, 2, cudaReadModeElementType> t2DfTimeDiffMatrices;
 
-// ADD-BY-LEETEN 03/28/2012-BEGIN
-#define PRINT_PomCompComplexity_TIMING	1
-texture<float, 2, cudaReadModeElementType> t2DfMatrix;
-// ADD-BY-LEETEN 03/28/2012-END
-texture<float, 2, cudaReadModeElementType> t2DfCoefs;
+	// ADD-BY-LEETEN 03/28/2012-BEGIN
+	#define PRINT_PomCompComplexity_TIMING	1
+	texture<float, 2, cudaReadModeElementType> t2DfMatrix;
+	// ADD-BY-LEETEN 03/28/2012-END
+	texture<float, 2, cudaReadModeElementType> t2DfCoefs;
+#endif		// DEL-BY-LEETEN 04/04/2012-END
 
 #include "kernel_CompDist.h"	// ADD-BY-LEETEN 03/28/2012
 
@@ -140,7 +142,9 @@ LIBCLOCK_BEGIN(bIsPrintingTiming);
 		size_t uNrOfNeededThreads = (b == uNrOfBatches - 1)?(uNrOfVoxels % BATCH_SIZE):BATCH_SIZE;
 		size_t uNrOfBlocks = (unsigned int)ceilf((float)uNrOfNeededThreads / (float)v3Blk.x);
 		dim3 v3Grid = dim3(
-			min(uNrOfBlocks, GRID_DIM_X),
+			// MOD-BY-LEETEN 04/04/2012-FROM:			min(uNrOfBlocks, GRID_DIM_X),
+			min(uNrOfBlocks, (size_t)GRID_DIM_X),
+			// MOD-BY-LEETEN 04/04/2012-END
 			(unsigned int)ceil((double)uNrOfBlocks / (double)GRID_DIM_X)
 			);
 
@@ -164,12 +168,21 @@ LIBCLOCK_END(bIsPrintingTiming);
 
 LIBCLOCK_BEGIN(bIsPrintingTiming);
 	// download the result back to the host
+	#if	0	// MOD-BY-LEETEN 04/04/2012-FROM:
+		CUDA_SAFE_CALL_NO_SYNC( 
+			cudaMemcpy(
+				pfDist, 
+				pfDist_device,
+				uNrOfVoxels * sizeof(pfDist),
+				cudaMemcpyDeviceToHost) );
+	#else		// MOD-BY-LEETEN 04/04/2012-TO:
 	CUDA_SAFE_CALL_NO_SYNC( 
 		cudaMemcpy(
 			pfDist, 
 			pfDist_device,
-			uNrOfVoxels * sizeof(pfDist),
+			uNrOfVoxels * sizeof(pfDist[0]),
 			cudaMemcpyDeviceToHost) );
+	#endif		// MOD-BY-LEETEN 04/04/2012-END
 
 LIBCLOCK_END(bIsPrintingTiming);
 
