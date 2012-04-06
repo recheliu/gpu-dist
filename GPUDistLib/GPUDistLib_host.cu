@@ -2,6 +2,7 @@
 #include <math.h>
 
 #include <assert.h>	// ADD-BY-LEETEN 03/28/2012
+#include <cudpp.h>	// ADD-BY-LEETEN 04/05/2012
 
 #ifdef	 WIN32
 	#undef	 WIN32
@@ -42,8 +43,40 @@
 
 #include "kernel_CompDist.h"	// ADD-BY-LEETEN 03/28/2012
 
-static bool bIsUsingCpu;
-static bool bIsPrintingTiming;
+#if	0	// MOD-BY-LEETEN 04/05/2012-FROM:
+	static bool bIsUsingCpu;
+	static bool bIsPrintingTiming;
+#else		// MOD-BY-LEETEN 04/05/2012-TO:
+bool bIsUsingCpu;
+bool bIsPrintingTiming;
+#endif		// MOD-BY-LEETEN 04/05/2012-END
+
+// ADD-BY-LEETEN 04/05/2012-BEGIN
+__constant__ int	iDummy_const;
+
+CUDPPHandle cudpp;
+
+void
+_GPUDistFree()
+{
+	ASSERT_OR_LOG(
+		CUDPP_SUCCESS == cudppDestroy(cudpp),
+		"");
+}
+
+void
+_GPUDistInit()
+{
+	int iDummy = 0;
+	CUDA_SAFE_CALL_NO_SYNC( 
+		cudaMemcpyToSymbol("iDummy_const",	&iDummy,	sizeof(iDummy),	0, cudaMemcpyHostToDevice) );
+
+	ASSERT_OR_LOG(
+		CUDPP_SUCCESS == cudppCreate(&cudpp),
+		"");
+	atexit(_GPUDistFree);
+}
+// ADD-BY-LEETEN 04/05/2012-END
 
 void
 _GPUDistUseCpu

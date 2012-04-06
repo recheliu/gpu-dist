@@ -10,6 +10,7 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
 
 add_subdirectory(GPUDistLib) 	
 add_subdirectory(GPUDistTestSimple)
+add_subdirectory(GPUHausdorffDistTestSimple)	# ADD-BY-LEETEN 04/05/2012
 
 #
 # $Log$
