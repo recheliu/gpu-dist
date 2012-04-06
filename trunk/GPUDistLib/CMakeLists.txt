@@ -29,6 +29,10 @@ CUDA_ADD_LIBRARY(${PROJECT_NAME}
 	GPUDistLib_host.cu
 	kernel_CompDist.h
 
+	# ADD-BY-LEETEN 04/05/2012-BEGIN
+	GPUHausdorffDist_host.cu	
+	kernel_CompPairDist.h	
+	# ADD-BY-LEETEN 04/05/2012-END
 #	GPUDistCudpp_host.cu
 #	kernel_CompDistCudpp.h
 )
@@ -39,6 +43,12 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 	RELEASE_OUTPUT_NAME "${PROJECT_NAME}_r"
 	)
 
+# ADD-BY-LEETEN 04/05/2012-BEGIN
+target_link_libraries(${PROJECT_NAME}
+	cudpp32
+)
+# ADD-BY-LEETEN 04/05/2012-END
+	
 install(
 	TARGETS ${PROJECT_NAME}
 	DESTINATION lib	)	
