@@ -1,11 +1,20 @@
+#if	0	// MOD-BY-LEETEN 04/07/2012-FROM:
+	//! A 1D texture for Point1
+	texture<float4, 1, cudaReadModeElementType> t1Df4Points1;
+
+	//! A 1D texture for Point2
+	texture<float4, 1, cudaReadModeElementType> t1Df4Points2;
+#else	// MOD-BY-LEETEN 04/07/2012-TO:
 //! A 1D texture for Point1
-texture<float4, 1, cudaReadModeElementType> t1Df4Points1;
+static texture<float4, 1, cudaReadModeElementType> t1Df4Points1;
 
 //! A 1D texture for Point2
-texture<float4, 1, cudaReadModeElementType> t1Df4Points2;
+static texture<float4, 1, cudaReadModeElementType> t1Df4Points2;
+#endif	// MOD-BY-LEETEN 04/07/2012-END
 
 //
 __global__ 
+static
 void 
 _CompPairDist_kernel
 (
@@ -33,21 +42,23 @@ _CompPairDist_kernel
 	}
 }
 
-__global__ 
-void 
-_SetupSegments_kernel
-(
-	unsigned int uNrOfPoints1,
-	unsigned int uNrOfPoints2,
-	unsigned int puSegBegin_device[]
-)
-{
-	unsigned int uBlock = gridDim.x * blockIdx.y + blockIdx.x;
-	unsigned int uThread = uBlock * blockDim.x + threadIdx.x;
+#if	0	// DEL-BY-LEETEN 04/07/2012-BEGIN
+	__global__ 
+	void 
+	_SetupSegments_kernel
+	(
+		unsigned int uNrOfPoints1,
+		unsigned int uNrOfPoints2,
+		unsigned int puSegBegin_device[]
+	)
+	{
+		unsigned int uBlock = gridDim.x * blockIdx.y + blockIdx.x;
+		unsigned int uThread = uBlock * blockDim.x + threadIdx.x;
 
-	if( uThread < uNrOfPoints1 )
-		puSegBegin_device[uThread * uNrOfPoints2] = 1;
-}
+		if( uThread < uNrOfPoints1 )
+			puSegBegin_device[uThread * uNrOfPoints2] = 1;
+	}
+#endif	// DEL-BY-LEETEN 04/07/2012-END
 
 /*
 
