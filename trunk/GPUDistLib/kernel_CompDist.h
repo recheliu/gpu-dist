@@ -13,7 +13,13 @@ _CompDist_kernel
 	#else		// MOD-BY-LEETEN 04/04/2012-TO:
 	unsigned int uThreadOffset,
 	int iPoint,
+	// ADD-BY-LEETEN 04/07/2012-BEGIN
+	#if	IS_COMP_MULTI_POINTS
+	unsigned int uNrOfPointsToCompare,
+	#else	// #if	IS_COMP_MULTI_POINTS
+	// ADD-BY-LEETEN 04/07/2012-END
 	float4 	f4Point,
+	#endif	// #if	IS_COMP_MULTI_POINTS	// ADD-BY-LEETEN 04/07/2012
 	unsigned int uWidth,
 	unsigned int uHeight,
 	unsigned int uDepth,
@@ -39,10 +45,34 @@ _CompDist_kernel
 		float fX = (float)( uV % uWidth );
 		float fY = (float)( (uV / uWidth) % uHeight);
 		float fZ = (float)( uV / (uWidth * uHeight) );
+		// ADD-BY-LEETEN 04/07/2012-BEGIN
+		#if	IS_COMP_MULTI_POINTS
+		float fD;
+		for(unsigned int pi = 0; pi < uNrOfPointsToCompare; pi++)
+		{
+			float4 f4Point = pf4Points_const[pi];
+		#endif	// #if	IS_COMP_MULTI_POINTS
+		// ADD-BY-LEETEN 04/07/2012-END
+
 		float fDx = fX - f4Point.x;
 		float fDy = fY - f4Point.y;
 		float fDz = fZ - f4Point.z;
-		float fDist = sqrt(fDx * fDx + fDy * fDy + fDz * fDz);
+		// MOD-BY-LEETEN 04/07/2012-FROM:		float fDist = sqrt(fDx * fDx + fDy * fDy + fDz * fDz);
+		float fDist = fDx * fDx + fDy * fDy + fDz * fDz;
+		// MOD-BY-LEETEN 04/07/2012-END
+		// ADD-BY-LEETEN 04/07/2012-BEGIN
+		#if	IS_SQRT
+		fDist = sqrtf(fDist);
+		#endif	// #if	IS_SQRT
+		// ADD-BY-LEETEN 04/07/2012-END
+
+		// ADD-BY-LEETEN 04/07/2012-BEGIN
+		#if	IS_COMP_MULTI_POINTS
+		fD = (pi > 0)?min(fD, fDist):fDist;
+		}
+		float fDist = fD;
+		#endif	// #if	IS_COMP_MULTI_POINTS
+		// ADD-BY-LEETEN 04/07/2012-END
 
 		if( iPoint > 0 )
 			fDist = min(fDist, fOldDist);
@@ -50,6 +80,71 @@ _CompDist_kernel
 		pfDists_device[uI] = fDist;
 	}
 }
+
+// ADD-BY-LEETEN 04/07/2012-BEGIN
+__global__ 
+void 
+_CompDistFromPoints_kernel
+(
+	unsigned int uNrOfPoints1,
+	float4 pf4Points1_device[],
+
+	unsigned int uPoint2,
+	// ADD-BY-LEETEN 04/07/2012-BEGIN
+	#if	IS_COMP_MULTI_POINTS			
+	unsigned int uNrOfPoints2ToCompare,
+	#else	// #if	IS_COMP_MULTI_POINTS			
+	// ADD-BY-LEETEN 04/07/2012-END
+	float4 	f4Point2,
+	#endif	//	#if	!IS_COMP_MULTI_POINTS	// ADD-BY-LEETEN 04/07/2012
+
+	float pfDists_device[]
+)
+{
+	unsigned int uBlock = gridDim.x * blockIdx.y + blockIdx.x;
+	unsigned int uPoint1 = uBlock * blockDim.x + threadIdx.x;
+
+	if( uPoint1 < uNrOfPoints1 )
+	{
+		float4 f4Point1 = pf4Points1_device[uPoint1];
+		// ADD-BY-LEETEN 04/07/2012-BEGIN
+		#if	IS_COMP_MULTI_POINTS
+		float fD;
+		for(unsigned int p2i = 0; p2i < uNrOfPoints2ToCompare; p2i++)
+		{
+			float4 f4Point2 = pf4Points_const[p2i];
+		#endif	// #if	IS_COMP_MULTI_POINTS
+		// ADD-BY-LEETEN 04/07/2012-END
+
+		float fDx = f4Point1.x - f4Point2.x;
+		float fDy = f4Point1.y - f4Point2.y;
+		float fDz = f4Point1.z - f4Point2.z;
+		float fDist = fDx * fDx + fDy * fDy + fDz * fDz;
+
+		// ADD-BY-LEETEN 04/07/2012-BEGIN
+		#if	IS_SQRT
+		fDist = sqrtf(fDist);
+		#endif	// #if	IS_SQRT
+		// ADD-BY-LEETEN 04/07/2012-END
+
+		// ADD-BY-LEETEN 04/07/2012-BEGIN
+		#if	IS_COMP_MULTI_POINTS
+			fD = (p2i > 0)?min(fD, fDist):fDist;
+		}
+		float fDist = fD;
+		#endif	// #if	IS_COMP_MULTI_POINTS
+		// ADD-BY-LEETEN 04/07/2012-END
+
+		if( uPoint2 > 0 )
+		{
+			float fOldDist = pfDists_device[uPoint1];
+			fDist = min(fDist, fOldDist);
+		}
+
+		pfDists_device[uPoint1] = fDist;
+	}
+}
+// ADD-BY-LEETEN 04/07/2012-END
 
 /*
 

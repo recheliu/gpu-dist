@@ -1,7 +1,7 @@
 # Reference:
 
 #The name of the project
-PROJECT(GPUHausdorffDistTestSimple)
+PROJECT(GPUDistInBatchTestSimple)
 
 FIND_PACKAGE(CUDA)
 
@@ -11,10 +11,7 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
 
 set(MYLIB_DIR 		"~/mylib" 	CACHE PATH "The path to MyLib.")	
 set(3RDPARTY_DIR 	"~/lib" 	CACHE PATH "The path to 3rd party libraries.")	
-# ADD-BY-LEETEN 04/07/2012-BEGIN
-set(IS_X64 			OFF 		CACHE BOOL "Is the platform x64?")	
-set(WITH_CUDPP 		ON 			CACHE BOOL "Is CUDPP used?")		
-# ADD-BY-LEETEN 04/07/2012-END
+set(IS_X64 			OFF 		CACHE BOOL "Is the platform x64?")	# TEST-ADD
 
 include_directories(
 	${MY_LIB_DIR}/include
@@ -31,24 +28,9 @@ link_directories(
 	${CUDA_SDK_ROOT_DIR}/common/lib/Win32
 )
 
-# MOD-BY-LEETEN 04/07/2012-FROM:
-	# ADD_EXECUTABLE(${PROJECT_NAME}
-		# GPUHausdorffDistTestSimple_main.cpp
-	# )
-# MOD-BY-LEETEN 04/07/2012-TO:
-if( WITH_CUDPP )
-	LIST(APPEND SORUCE_FILES
-		GPUHausdorffDistTestSimple_main.cpp
-	)
-else()
-	LIST(APPEND SORUCE_FILES
-		GPUHausdorffDistNoCudppTest_main.cpp
-	)
-endif()
 ADD_EXECUTABLE(${PROJECT_NAME}
-	${SORUCE_FILES}
+	GPUDistInBatchTestSimple_main.cpp
 )
-# MOD-BY-LEETEN 04/07/2012-END
 
 # link CUDPP
 # if(DEFINED WIN32)	
@@ -56,23 +38,21 @@ ADD_EXECUTABLE(${PROJECT_NAME}
 #		debug	cudpp32d	optimized	cudpp32
 #	)
 # else()
-# MOD-BY-LEETEN 04/07/2012-FROM:
+# TEST-MOD-FROM:
  	# target_link_libraries(${PROJECT_NAME}
 		# cudpp32
  	# )
-# MOD-BY-LEETEN 04/07/2012-TO:
-if( WITH_CUDPP )
-	if( IS_X64 )
-		target_link_libraries(${PROJECT_NAME}
-			cudpp64
-		)
-	else()
-		target_link_libraries(${PROJECT_NAME}
-			cudpp32
-		)
-	endif()
+# TEST-MOD-TO:
+if( IS_X64 )
+ 	target_link_libraries(${PROJECT_NAME}
+		cudpp64
+ 	)
+else()
+ 	target_link_libraries(${PROJECT_NAME}
+		cudpp32
+ 	)
 endif()
-# MOD-BY-LEETEN 04/07/2012-END
+# TEST-MOD-END
 # endif()
 	
 # the needed libraries

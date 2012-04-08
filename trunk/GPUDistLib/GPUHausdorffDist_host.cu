@@ -1,29 +1,90 @@
-#define _USE_MATH_DEFINES
-#include <math.h>
+#if	0	// MOD-BY-LEETEN 04/07/2012-FROM:
+	#define _USE_MATH_DEFINES
+	#include <math.h>
 
-#include <assert.h>	// ADD-BY-LEETEN 03/28/2012
+	#include <assert.h>	// ADD-BY-LEETEN 03/28/2012
 
-#include "cudpp.h"
+	#include "cudpp.h"
 
-#ifdef	 WIN32
-	#undef	 WIN32
-	#include "liblog.h"
-	#define  WIN32
-#else
-	#include "liblog.h"
-#endif
-#include "cuda_macro.h"	
-#include "cuda_macro3d.h"	
-#include "libclock.h"
-#include "libbuf.h"	
+	#ifdef	 WIN32
+		#undef	 WIN32
+		#include "liblog.h"
+		#define  WIN32
+	#else
+		#include "liblog.h"
+	#endif
+	#include "cuda_macro.h"	
+	#include "cuda_macro3d.h"	
+	#include "libclock.h"
+	#include "libbuf.h"	
 
-#include "GPUDistLib.h"	
+	#include "GPUDistLib.h"	
 
-#define BLOCK_DIM_X	16
-#define BLOCK_DIM_Y	8
-#define GRID_DIM_X	1024
-#define GRID_DIM_Y	1024
-#define BATCH_SIZE	(BLOCK_DIM_X * BLOCK_DIM_Y * GRID_DIM_X * GRID_DIM_Y)
+	#define BLOCK_DIM_X	16
+	#define BLOCK_DIM_Y	8
+	#define GRID_DIM_X	1024
+	#define GRID_DIM_Y	1024
+	#define BATCH_SIZE	(BLOCK_DIM_X * BLOCK_DIM_Y * GRID_DIM_X * GRID_DIM_Y)
+
+	#define	IS_COMPACT_AND_REDUCE_ON_CPU	0
+	#if		!IS_COMPACT_AND_REDUCE_ON_CPU	
+		#define	IS_REDUCE_ON_CPU		0
+	#endif	// #if	!IS_COMPACT_AND_REDUCE_ON_CPU	
+
+	//! Decide how the segments are initialized
+	/*!
+	IS_MEMCPY_SEG = 1: Initialize the value on the host and then copy to the device
+	IS_MEMCPY_SEG = 0: Initialize the value on the device side by using the kernel _SetupSegments_kernel
+	*/
+	#define	IS_MEMCPY_SEG			0
+
+	struct CConfigPlan{
+		CUDPPConfiguration cConfig;
+		CUDPPHandle hPlan;
+		CConfigPlan()
+		{
+			hPlan = 0;
+		}
+		~CConfigPlan()
+		{
+			if( hPlan )
+				cudppDestroyPlan(hPlan);
+		}
+	} 
+		cFindMinDistFromPoint1ToPoints2, 
+		cCompactMinDistFromPoint1ToPoints2,
+		cReduceMinDistFromPoint1ToPoints2;
+
+	#include "kernel_CompPairDist.h"	// ADD-BY-LEETEN 03/28/2012
+
+	extern CUDPPHandle cudpp;
+	extern bool bIsUsingCpu;
+	extern bool bIsPrintingTiming;
+
+	size_t uNrOfPoints1;
+	size_t uNrOfPoints2;
+
+	float* pfMinDistFromPoint1ToPoints2_device;
+	float *pfCompactedMinDistFromPoint1ToPoints2_device;
+	size_t *puNonUsed_device;
+	unsigned int *puSegBegin_device;
+	float *pfDist1To2_device;
+	float *pfDist1To2_host;
+	float4 *pf4Points1_device;
+	float4 *pf4Points2_device;
+	float* pfDists_device;
+
+	static bool bIsFreeSet;
+#else	// MOD-BY-LEETEN 04/07/2012-TO:
+
+#include "GPUDistLib_internal.h"
+#include "kernel_CompPairDist.h"
+#include "kernel_SetupSegBegin.h"
+
+static CConfigPlan
+		cFindMinDistFromPoint1ToPoints2, 
+		cCompactMinDistFromPoint1ToPoints2,
+		cReduceMinDistFromPoint1ToPoints2;
 
 #define	IS_COMPACT_AND_REDUCE_ON_CPU	0
 #if		!IS_COMPACT_AND_REDUCE_ON_CPU	
@@ -37,43 +98,21 @@ IS_MEMCPY_SEG = 0: Initialize the value on the device side by using the kernel _
 */
 #define	IS_MEMCPY_SEG			0
 
-struct CConfigPlan{
-	CUDPPConfiguration cConfig;
-	CUDPPHandle hPlan;
-	CConfigPlan()
-	{
-		hPlan = 0;
-	}
-	~CConfigPlan()
-	{
-		if( hPlan )
-			cudppDestroyPlan(hPlan);
-	}
-} 
-	cFindMinDistFromPoint1ToPoints2, 
-	cCompactMinDistFromPoint1ToPoints2,
-	cReduceMinDistFromPoint1ToPoints2;
+static	size_t uNrOfPoints1;
+static 	size_t uNrOfPoints2;
 
-#include "kernel_CompPairDist.h"	// ADD-BY-LEETEN 03/28/2012
+static 	float* pfMinDistFromPoint1ToPoints2_device;
+static 	float *pfCompactedMinDistFromPoint1ToPoints2_device;
+static 	size_t *puNonUsed_device;
+static 	unsigned int *puSegBegin_device;
+static 	float *pfDist1To2_device;
+static 	float *pfDist1To2_host;
+static 	float4 *pf4Points1_device;
+static 	float4 *pf4Points2_device;
+static 	float* pfDists_device;
 
-extern CUDPPHandle cudpp;
-extern bool bIsUsingCpu;
-extern bool bIsPrintingTiming;
-
-size_t uNrOfPoints1;
-size_t uNrOfPoints2;
-
-float* pfMinDistFromPoint1ToPoints2_device;
-float *pfCompactedMinDistFromPoint1ToPoints2_device;
-size_t *puNonUsed_device;
-unsigned int *puSegBegin_device;
-float *pfDist1To2_device;
-float *pfDist1To2_host;
-float4 *pf4Points1_device;
-float4 *pf4Points2_device;
-float* pfDists_device;
-
-static bool bIsFreeSet;
+static	bool bIsFreeSet;
+#endif	// MOD-BY-LEETEN 04/07/2012-END
 
 void
 _GPUHausFree()
@@ -304,7 +343,7 @@ _GPUHausCompByCpu
 	float* pfDist1To2
 )
 {
-	ASSERT_OR_LOG(::uNrOfPoints1 == uNrOfPoints1 && ::uNrOfPoints2 == uNrOfPoints2, "");
+	// DEL-BY-LEETEN 04/07/2012:	ASSERT_OR_LOG(::uNrOfPoints1 == uNrOfPoints1 && ::uNrOfPoints2 == uNrOfPoints2, "");
 LIBCLOCK_INIT(bIsPrintingTiming, __FUNCTION__);
 LIBCLOCK_BEGIN(bIsPrintingTiming);
 	
