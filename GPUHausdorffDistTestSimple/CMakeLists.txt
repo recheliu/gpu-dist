@@ -90,6 +90,14 @@ target_link_libraries(${PROJECT_NAME}
 	GPUDistLib
 	)
 
+# ADD-BY-LEETEN 04/09/2012-BEGIN
+install(
+	TARGETS ${PROJECT_NAME}
+	RUNTIME	DESTINATION bin
+	ARCHIVE	DESTINATION	lib
+	)	
+# ADD-BY-LEETEN 04/09/2012-END
+	
 add_dependencies(GPUDistTestSimple GPUDistLib)	
 
 #
