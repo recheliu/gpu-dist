@@ -11,6 +11,7 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
 add_subdirectory(GPUDistLib) 	
 add_subdirectory(GPUDistTestSimple)
 add_subdirectory(GPUHausdorffDistTestSimple)	# ADD-BY-LEETEN 04/05/2012
+add_subdirectory(GPUDistToTrianglesSimple)		# ADD-BY-LEETEN 04/13/2012
 # ADD-BY-LEETEN 04/07/2012-BEGIN
 if( WITH_CUDPP )	
 	add_subdirectory(GPUDistInBatchTestSimple)		

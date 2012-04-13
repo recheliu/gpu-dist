@@ -1,7 +1,7 @@
 # Reference:
 
 #The name of the project
-PROJECT(GPUDistTestSimple)
+PROJECT(GPUDistToTrianglesSimple)
 
 FIND_PACKAGE(CUDA)
 
@@ -28,7 +28,7 @@ link_directories(
 )
 
 ADD_EXECUTABLE(${PROJECT_NAME}
-	GPUDistTestSimple_main.cpp
+	GPUDistToTrianglesSimple_main.cpp
 )
 
 # link OpenGL-related libraries

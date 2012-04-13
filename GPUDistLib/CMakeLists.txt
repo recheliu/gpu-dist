@@ -74,6 +74,11 @@ CUDA_ADD_LIBRARY(${PROJECT_NAME}
 	GPUDistLib.h
 	GPUDistLib_host.cu
 	kernel_CompDist.h
+	# ADD-BY-LEETEN 04/13/2012-BEGIN
+	kernel_CompDistFromTriangle.h	
+	kernel_TransformTriangle.h		
+	device_Vector.h		
+	# ADD-BY-LEETEN 04/13/2012-END
 	
 	# MOD-BY-LEETEN 04/07/2012-FROM:
 		#	# ADD-BY-LEETEN 04/05/2012-BEGIN

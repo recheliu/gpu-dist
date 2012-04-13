@@ -56,6 +56,42 @@ _GPUDistCompDistFromPointsToPointsByCpu
 );
 // ADD-BY-LEETEN 04/07/2012-END
 
+// ADD-BY-LEETEN 04/13/2012-BEGIN
+void 
+_GPUDistCompDistFromPointsToTrianglesByCpu
+(
+	size_t uNrOfPoints1,
+	float4 pf4Points1[],
+
+	size_t uNrOfPoints2,
+	float4 pf4Points2[],
+
+	size_t uNrOfTriangles,
+	ulong4 pu4TriangleVertices[],
+
+	bool bIsPrecomputingTrasforms,
+
+	float pfDists[]
+);
+
+void 
+_GPUDistCompDistFromPointsToTriangles
+(
+	size_t uNrOfPoints1,
+	float4 pf4Points1[],
+
+	size_t uNrOfPoints2,
+	float4 pf4Points2[],
+
+	size_t uNrOfTriangles,
+	ulong4 pu4TriangleVertices[],
+
+	bool bIsPrecomputingTrasforms,
+
+	float pfDists[]
+);
+// ADD-BY-LEETEN 04/13/2012-END
+
 // ADD-BY-LEETEN 04/05/2012-BEGIN
 //! Initialized GPUDist
 void
