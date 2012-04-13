@@ -26,20 +26,24 @@ main(int argn, char* argv[])
 	{
 		_GPUDistUseCpu(testi);
 
-		for(size_t le = 5; le < 6; le++)
-		{
-			TBuffer3D<float> p3DfDist;
-			size_t uLength = 1 << le;
-			LOG_VAR(uLength);
-			p3DfDist.alloc(uLength, uLength, uLength);
+		#if	0	// MOD-BY-LEETEN 04/13/2012-FROM:
+			for(size_t le = 5; le < 6; le++)
+			{
+				TBuffer3D<float> p3DfDist;
+				size_t uLength = 1 << le;
+				LOG_VAR(uLength);
+				p3DfDist.alloc(uLength, uLength, uLength);
 
-			TBuffer<float4> pf4Coords;
-			pf4Coords.alloc(p3DfDist.USize());
-			for(size_t	v = 0,		d = 0; d < p3DfDist.iDepth; d++)
-				for(size_t		h = 0; h < p3DfDist.iHeight; h++)
-					for(size_t	w = 0; w < p3DfDist.iWidth; w++, v++)
-						pf4Coords[v] = make_float4(
-							(float)w / (float)(p3DfDist.iWidth - 1), (float)h / (float)(p3DfDist.iHeight - 1), (float)d / (float)(p3DfDist.iDepth - 1), 1.0f);
+				TBuffer<float4> pf4Coords;
+				pf4Coords.alloc(p3DfDist.USize());
+				for(size_t	v = 0,		d = 0; d < p3DfDist.iDepth; d++)
+					for(size_t		h = 0; h < p3DfDist.iHeight; h++)
+						for(size_t	w = 0; w < p3DfDist.iWidth; w++, v++)
+							pf4Coords[v] = make_float4(
+								(float)w / (float)(p3DfDist.iWidth - 1), (float)h / (float)(p3DfDist.iHeight - 1), (float)d / (float)(p3DfDist.iDepth - 1), 1.0f);
+		#else		// MOD-BY-LEETEN 04/13/2012-TO:
+		size_t uLength = 32;
+		#endif		// MOD-BY-LEETEN 04/13/2012-END
 
 			// create a small triangle meshes
 			#if	TEST_MESH == TEST_MESH_TETRAHEDRON
@@ -120,6 +124,23 @@ main(int argn, char* argv[])
 				}
 			#endif	// #if TEST_MESH
 
+		// ADD-BY-LEETEN 04/13/2012-BEGIN
+		for(size_t le = 5; le < 6; le++)
+		{
+			TBuffer3D<float> p3DfDist;
+			size_t uLength = 1 << le;
+			LOG_VAR(uLength);
+			p3DfDist.alloc(uLength, uLength, uLength);
+
+			TBuffer<float4> pf4Coords;
+			pf4Coords.alloc(p3DfDist.USize());
+			for(size_t	v = 0,		d = 0; d < p3DfDist.iDepth; d++)
+				for(size_t		h = 0; h < p3DfDist.iHeight; h++)
+					for(size_t	w = 0; w < p3DfDist.iWidth; w++, v++)
+						pf4Coords[v] = make_float4(
+							(float)w / (float)(p3DfDist.iWidth - 1), (float)h / (float)(p3DfDist.iHeight - 1), (float)d / (float)(p3DfDist.iDepth - 1), 1.0f);
+		// ADD-BY-LEETEN 04/13/2012-END
+
 			////////////////////////////////////////////
 			// compute the distance from the points to the mesh vertices
 			_GPUDistCompDistFromPointsToPoints
@@ -132,6 +153,7 @@ main(int argn, char* argv[])
 	 
 				&p3DfDist[0]
 			);
+			if( !BGPUDistIsDistSquaredRoot() )	// ADD-BY-LEETEN 04/13/2012
 			for(unsigned int i = 0; i < p3DfDist.USize(); i++)
 				p3DfDist[i] = sqrtf(p3DfDist[i]);
 			char szFileName[1024+1];
@@ -154,7 +176,11 @@ main(int argn, char* argv[])
 
 				&p3DfDist[0]
 			);
-
+			// ADD-BY-LEETEN 04/13/2012-BEGIN
+			if( !BGPUDistIsDistSquaredRoot() )
+				for(unsigned int i = 0; i < p3DfDist.USize(); i++)
+					p3DfDist[i] = sqrtf(p3DfDist[i]);
+			// ADD-BY-LEETEN 04/13/2012-END
 			sprintf(szFileName, "%s.triangle.dist", (0 == testi)?"gpu":"cpu");
 			p3DfDist._Save(szFileName);
 		}
