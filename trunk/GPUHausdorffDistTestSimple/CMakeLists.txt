@@ -90,6 +90,12 @@ target_link_libraries(${PROJECT_NAME}
 	GPUDistLib
 	)
 
+# ADD-BY-LEETEN 04/13/2012-BEGIN
+target_link_libraries(${PROJECT_NAME}
+	lib3ds-120s
+)
+# ADD-BY-LEETEN 04/13/2012-END
+	
 # ADD-BY-LEETEN 04/09/2012-BEGIN
 install(
 	TARGETS ${PROJECT_NAME}
