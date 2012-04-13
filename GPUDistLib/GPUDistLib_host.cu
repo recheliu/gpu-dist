@@ -74,6 +74,20 @@ __constant__ int	iDummy_const;
 CUDPPHandle cudpp;
 #endif	// #if	defined(WITH_CUDPP)
 
+// ADD-BY-LEETEN 04/13/2012-BEGIN
+bool
+BGPUDistIsDistSquaredRoot
+(
+		)
+{
+#if	IS_SQRT
+	return true;
+#else	// #if	IS_SQRT
+	return false;
+#endif	// #if	IS_SQRT
+}
+// ADD-BY-LEETEN 04/13/2012-END
+
 void
 _GPUDistFree()
 {

@@ -33,7 +33,12 @@ _CompDistToEdge2D_device
 	float2 f2AP = make_float2(
 		f4P.y - f4A.y,
 		f4P.z - f4A.z);
-	float fAP = sqrtf(f2AP.x * f2AP.x + f2AP.y * f2AP.y);
+	// MOD-BY-LEETEN 04/13/2012-FROM:	float fAP = sqrtf(f2AP.x * f2AP.x + f2AP.y * f2AP.y);
+	float fAP = f2AP.x * f2AP.x + f2AP.y * f2AP.y;
+	#if	IS_SQRT
+	fAP = sqrtf(fAP);
+	#endif	// #if	IS_SQRT
+	// MOD-BY-LEETEN 04/13/2012-END
 
 	float2 f2AB = make_float2(
 		f4B.y - f4A.y,
@@ -52,11 +57,22 @@ _CompDistToEdge2D_device
 			float2 f2BP = make_float2(	
 				f4P.y - f4B.y,
 				f4P.z - f4B.z);
-			float fBP = sqrtf(f2BP.x * f2BP.x + f2BP.y * f2BP.y);
+			// MOD-BY-LEETEN 04/13/2012-FROM:	float fBP = sqrtf(f2BP.x * f2BP.x + f2BP.y * f2BP.y);
+			float fBP = f2BP.x * f2BP.x + f2BP.y * f2BP.y;
+			#if	IS_SQRT
+			fBP = sqrtf(fBP);
+			#endif	// #if	IS_SQRT
+			// MOD-BY-LEETEN 04/13/2012-END
 			fD = fBP;
 		}
 		else
+			// MOD-BY-LEETEN 04/13/2012-FROM:	fD = sqrtf(fAP * fAP - fAP2 * fAP2);
+			#if	IS_SQRT
 			fD = sqrtf(fAP * fAP - fAP2 * fAP2);
+			#else	// #if	IS_SQRT
+			fD = fAP - fAP2 * fAP2;
+			#endif	// #if	IS_SQRT
+			// MOD-BY-LEETEN 04/13/2012-END			
 	}
 
 	*pfDist = fD;
@@ -104,6 +120,11 @@ _CompDistFromTriangle_kernel
 		float fT = (-f4B2_const.z * f4P2.y + f4B2_const.y * f4P2.z) / fDet_const;
 
 		float fDist = fabsf(f4P2.x);
+		// ADD-BY-LEETEN 04/13/2012-BEGIN
+		#if	!IS_SQRT	
+		fDist *= fDist;
+		#endif	// #if	!IS_SQRT	
+		// ADD-BY-LEETEN 04/13/2012-END
 		if( !(
 			0.0f < fS && fS < 1.0f &&
 			0.0f < fT && fT < 1.0f &&
@@ -115,7 +136,13 @@ _CompDistFromTriangle_kernel
 			_CompDistToEdge2D_device(f4P2,	f4B2_const,	f4C2_const,	&fD1);	fDistToEdge2D = fD1;
 			_CompDistToEdge2D_device(f4P2,	f4Zero,		f4B2_const,	&fD2);	fDistToEdge2D = min(fDistToEdge2D, fD2);
 			_CompDistToEdge2D_device(f4P2,	f4Zero,		f4C2_const,	&fD3);	fDistToEdge2D = min(fDistToEdge2D, fD3);
+			// ADD-BY-LEETEN 04/13/2012-BEGIN
+			#if	!IS_SQRT	
+			fDist = fDistToEdge2D + fDist;
+			#else	// #if	!IS_SQRT	
+			// ADD-BY-LEETEN 04/13/2012-END
 			fDist = sqrtf(fDistToEdge2D * fDistToEdge2D + fDist * fDist);
+			#endif	// #if	!IS_SQRT	// ADD-BY-LEETEN 04/13/2012
 		}
 
 		if( uTriangle > 0 )

@@ -1,5 +1,12 @@
 #pragma once
 
+// ADD-BY-LEETEN 04/13/2012-BEGIN
+bool
+BGPUDistIsDistSquaredRoot
+(
+		);
+// ADD-BY-LEETEN 04/13/2012-END
+
 void
 _GPUDistUseCpu
 (
