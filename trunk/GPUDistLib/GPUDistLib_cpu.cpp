@@ -22,7 +22,13 @@ _CompDistToEdge2D
 	float2 f2AP;
 	f2AP.x = f2P.x - f2A.x;
 	f2AP.y = f2P.y - f2A.y;
-	float fAP = sqrtf(f2AP.x * f2AP.x + f2AP.y * f2AP.y);
+	// TMP:	float fAP = sqrtf(f2AP.x * f2AP.x + f2AP.y * f2AP.y);
+	// MOD-BY-LEETEN 04/13/2012-FROM:	float fAP = sqrtf(f2AP.x * f2AP.x + f2AP.y * f2AP.y);
+	float fAP = f2AP.x * f2AP.x + f2AP.y * f2AP.y;
+	#if	IS_SQRT
+	fAP = sqrtf(fAP);
+	#endif	// #if	IS_SQRT
+	// MOD-BY-LEETEN 04/13/2012-END
 
 	/*
 	Lib3dsVector v3AB;
@@ -33,18 +39,47 @@ _CompDistToEdge2D
 	f2AB.y = f2B.y - f2A.y;
 	float fAB = sqrtf(f2AB.x * f2AB.x + f2AB.y * f2AB.y);
 
-	float fD = 0.0f;
-	if( 0.0f == fAB )
-	{
-		fD = fAP;
-	}
-	else
+	#if	0	// MOD-BY-LEETEN 04/14/2012-FROM:
+		float fD = 0.0f;
+		if( 0.0f == fAB )
+		{
+			fD = fAP;
+		}
+		else
+		{
+			// float fT = lib3ds_vector_dot(v3AB, v3AP) / fAB;	// fT: |AP| cos(theta)
+			float fT = (f2AB.x * f2AP.x + f2AB.y * f2AP.y) / fAB;
+			if( 0.0f <= fT && fT <= fAB )
+			{
+				fD = sqrtf(fAP * fAP - fT * fT);
+			}
+			else
+			{
+				/*
+				ib3ds_vector_sub(v3BP, v3B, v3P);
+				float fBP = lib3ds_vector_length( v3BP );
+				*/
+				float2 f2BP;
+				f2BP.x = f2P.x - f2B.x;
+				f2BP.y = f2P.y - f2B.y;
+				float fBP = sqrtf(f2BP.x * f2BP.x + f2BP.y * f2BP.y);
+
+				fD = min(fAP, fBP);
+			}
+		}
+	#else	// MOD-BY-LEETEN 04/14/2012-TO:
+	float fD = fAP;
+	if( 0.0f < fAB )
 	{
 		// float fT = lib3ds_vector_dot(v3AB, v3AP) / fAB;	// fT: |AP| cos(theta)
 		float fT = (f2AB.x * f2AP.x + f2AB.y * f2AP.y) / fAB;
 		if( 0.0f <= fT && fT <= fAB )
 		{
+			#if	IS_SQRT
 			fD = sqrtf(fAP * fAP - fT * fT);
+			#else	// #if	IS_SQRT		
+			fD = fAP - fT * fT;
+			#endif	// #if	IS_SQRT
 		}
 		else
 		{
@@ -55,11 +90,16 @@ _CompDistToEdge2D
 			float2 f2BP;
 			f2BP.x = f2P.x - f2B.x;
 			f2BP.y = f2P.y - f2B.y;
+			#if	IS_SQRT
 			float fBP = sqrtf(f2BP.x * f2BP.x + f2BP.y * f2BP.y);
+			#else	// #if	IS_SQRT
+			float fBP = f2BP.x * f2BP.x + f2BP.y * f2BP.y;
+			#endif	// #if	IS_SQRT
 
 			fD = min(fAP, fBP);
 		}
 	}
+	#endif	// MOD-BY-LEETEN 04/14/2012-END
 	*pfDist = fD;
 }
 
@@ -213,37 +253,73 @@ _CompDistToTriangle
 	float fT = (-v3B2[2] * v3P2[1] + v3B2[1] * v3P2[2]) / fDet;
 
 	float fDist = (float)HUGE_VAL;
-	if( 
-		0.0f <= fS && fS <= 1.0f &&
-		0.0f <= fT && fT <= 1.0f &&
-		fS + fT <= 1.0f	)
-	{
-		fDist = fabsf(v3P2[0]);
-	}
-	else
-	{
-		float fD;
-		_CompDistToEdge2D(
-			make_float2(v3P2[1], v3P2[2]),
-			make_float2(0.0f, 0.0f),
-			make_float2(v3B2[1], v3B2[2]),
-			&fD);
-		fDist = min(fDist, fD);
-		_CompDistToEdge2D(
-			make_float2(v3P2[1], v3P2[2]),
-			make_float2(0.0f, 0.0f),
-			make_float2(v3C2[1], v3C2[2]),
-			&fD);
-		fDist = min(fDist, fD);
-		_CompDistToEdge2D(
-			make_float2(v3P2[1], v3P2[2]),
-			make_float2(v3B2[1], v3B2[2]),
-			make_float2(v3C2[1], v3C2[2]),
-			&fD);
-		fDist = min(fDist, fD);
+	#if	0	// MOD-BY-LEETEN 04/14/2012-FROM:
+		if( 
+			0.0f <= fS && fS <= 1.0f &&
+			0.0f <= fT && fT <= 1.0f &&
+			fS + fT <= 1.0f	)
+		{
+			fDist = fabsf(v3P2[0]);
+		}
+		else
+		{
+			float fD;
+			_CompDistToEdge2D(
+				make_float2(v3P2[1], v3P2[2]),
+				make_float2(0.0f, 0.0f),
+				make_float2(v3B2[1], v3B2[2]),
+				&fD);
+			fDist = min(fDist, fD);
+			_CompDistToEdge2D(
+				make_float2(v3P2[1], v3P2[2]),
+				make_float2(0.0f, 0.0f),
+				make_float2(v3C2[1], v3C2[2]),
+				&fD);
+			fDist = min(fDist, fD);
+			_CompDistToEdge2D(
+				make_float2(v3P2[1], v3P2[2]),
+				make_float2(v3B2[1], v3B2[2]),
+				make_float2(v3C2[1], v3C2[2]),
+				&fD);
+			fDist = min(fDist, fD);
 
-		fDist = sqrtf(fDist * fDist + v3P2[0] * v3P2[0]);
+			fDist = sqrtf(fDist * fDist + v3P2[0] * v3P2[0]);
+		}
+	#else	// MOD-BY-LEETEN 04/14/2012-TO:
+	fDist = fabsf(v3P2[0]);
+	#if !IS_SQRT
+	fDist *= fDist;
+	#endif	// #if !IS_SQRT
+	if( !(
+		0.0f < fS && fS < 1.0f &&
+		0.0f < fT && fT < 1.0f &&
+		fS + fT < 1.0f	) )
+	{
+		float fD1, fD2, fD3;
+		_CompDistToEdge2D(
+			make_float2(v3P2[1], v3P2[2]),
+			make_float2(0.0f, 0.0f),
+			make_float2(v3B2[1], v3B2[2]),
+			&fD1);
+		_CompDistToEdge2D(
+			make_float2(v3P2[1], v3P2[2]),
+			make_float2(0.0f, 0.0f),
+			make_float2(v3C2[1], v3C2[2]),
+			&fD2);
+		_CompDistToEdge2D(
+			make_float2(v3P2[1], v3P2[2]),
+			make_float2(v3B2[1], v3B2[2]),
+			make_float2(v3C2[1], v3C2[2]),
+			&fD3);
+		float fD = min(min(fD1, fD2), fD3);
+
+		#if	IS_SQRT
+		fDist = sqrtf(fD * fD + fDist * fDist);
+		#else	// #if	IS_SQRT
+		fDist = fDist + fD;
+		#endif	// #if IS_SQRT
 	}
+	#endif	// MOD-BY-LEETEN 04/14/2012-END
 	*pfDist = fDist;
 }
 
