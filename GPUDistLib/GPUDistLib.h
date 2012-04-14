@@ -1,24 +1,31 @@
 #pragma once
 
 // ADD-BY-LEETEN 04/13/2012-BEGIN
+//! Return a boolean whether the distance is the squared of the true disance. 
+/*!
+If the return value is false, the caller should compute the squared too for the distance.
+*/
 bool
 BGPUDistIsDistSquaredRoot
 (
 		);
 // ADD-BY-LEETEN 04/13/2012-END
 
+//! Specified whether CPUs (true) or GPUs (false) is used
 void
 _GPUDistUseCpu
 (
 		bool bIsUsingCpu
 		);
 
+//! Specified whether the timing is printed.
 void
 _GPUDistPrintTiming
 (
 		bool bIsPrintingTiming
 		);
 
+//! Compute the distance from each grid point to the input points
 void
 _GPUDistComputeDistanceFieldFromPoints
 (
@@ -31,6 +38,7 @@ _GPUDistComputeDistanceFieldFromPoints
 );
 
 // ADD-BY-LEETEN 04/07/2012-BEGIN
+//! Compute the distance from each grid point to the input points on CPUs
 void
 _GPUDistComputeDistanceFieldFromPointsByCpu
 (
@@ -42,6 +50,7 @@ _GPUDistComputeDistanceFieldFromPointsByCpu
 	float pfDist[]
 );
 
+//! Compute the distance from each point in Points1 to the sqeuence of points (Points2)
 void
 _GPUDistCompDistFromPointsToPoints
 (
@@ -52,6 +61,7 @@ _GPUDistCompDistFromPointsToPoints
 	float pfDist[]
 );
 
+//! Compute the distance from each point in Points1 to the sqeuence of points (Points2) on CPUs.
 void
 _GPUDistCompDistFromPointsToPointsByCpu
 (
@@ -64,6 +74,7 @@ _GPUDistCompDistFromPointsToPointsByCpu
 // ADD-BY-LEETEN 04/07/2012-END
 
 // ADD-BY-LEETEN 04/13/2012-BEGIN
+//! Compute distance from each point in Points1 to the triangle meshes defined by the points (Points2) and the connectivity on CPUs.
 void 
 _GPUDistCompDistFromPointsToTrianglesByCpu
 (
@@ -82,6 +93,7 @@ _GPUDistCompDistFromPointsToTrianglesByCpu
 );
 
 void 
+//! Compute distance from each point in Points1 to the triangle meshes defined by the points (Points2) and the connectivity.
 _GPUDistCompDistFromPointsToTriangles
 (
 	size_t uNrOfPoints1,

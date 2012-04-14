@@ -3,6 +3,7 @@
 #include <vector_functions.h>
 
 #include "libclock.h"	// ADD-BY-LEETEN 04/07/2012
+#include "libopt.h"	// ADD-BY-LEETEN 04/14/2012
 #include "liblog.h"
 #include "libbuf.h"
 #include "libbuf3d.h"
@@ -17,14 +18,55 @@
 int 
 main(int argn, char* argv[])
 {
+	// ADD-BY-LEETEN 04/14/2012-BEGIN
+	_OPTInit();
+	int iNrOfSlices;
+	_OPTAddIntegerVector("--nr-of-slices", 1, 
+		&iNrOfSlices, 16);
+
+	int piGridSize[3];
+	_OPTAddIntegerVector("--grid-size", 3, 
+		&piGridSize[0], 16,
+		&piGridSize[1], 16,
+		&piGridSize[2], 16);
+
+	char* szDistanceFieldFilenamePrefix;
+	_OPTAddStringVector("--distance-field-filename-prefix", 1, 
+		&szDistanceFieldFilenamePrefix, "distance_field");
+
+	// ADD-BY-LEETEN 04/14/2012-BEGIN
+	int iIsUsingCpu;
+	_OPTAddBoolean("--is-using-cpu", &iIsUsingCpu, OPT_FALSE);
+
+	int iTestMesh;
+	_OPTAddEnum("--test-mesh", &iTestMesh, 3, TEST_MESH_SPHERE,
+		"tetrahedron",	TEST_MESH_TETRAHEDRON,
+		"tube",		TEST_MESH_TUBE,
+		"sphere",	TEST_MESH_SPHERE);
+	// ADD-BY-LEETEN 04/14/2012-END
+
+	ASSERT_OR_LOG(
+		BOPTParse(argv, argn, 1), 
+		printf("Invalid Arguments."));
+
+	LOG_VAR(szDistanceFieldFilenamePrefix);
+	LOG_VAR(iNrOfSlices);
+	LOG(printf("Grid Size = %d %d %d", piGridSize[0], piGridSize[1], piGridSize[2]));
+	char *szDevice = (iIsUsingCpu)?"cpu":"gpu";
+	LOG_VAR(szDevice);
+	// ADD-BY-LEETEN 04/14/2012-END
 	_GPUDistInit();	// ADD-BY-LEETEN 04/07/2012
 
 	_GPUDistPrintTiming(true);
 
+	bool bIsPreCompTransforms = true;	// ADD-BY-LEETEN 04/14/2012
+
 	// build the grid
-	for(int testi = 0; testi < 1; testi++)
+	// DEL-BY-LEETEN 04/14/2012:	for(int testi = 0; testi < 1; testi++)
 	{
-		_GPUDistUseCpu(testi);
+		// MOD-BY-LEETEN 04/14/2012-FROM::	_GPUDistUseCpu(testi);
+		_GPUDistUseCpu(iIsUsingCpu);
+		// MOD-BY-LEETEN 04/14/2012-END
 
 		#if	0	// MOD-BY-LEETEN 04/13/2012-FROM:
 			for(size_t le = 5; le < 6; le++)
@@ -42,55 +84,100 @@ main(int argn, char* argv[])
 							pf4Coords[v] = make_float4(
 								(float)w / (float)(p3DfDist.iWidth - 1), (float)h / (float)(p3DfDist.iHeight - 1), (float)d / (float)(p3DfDist.iDepth - 1), 1.0f);
 		#else		// MOD-BY-LEETEN 04/13/2012-TO:
-		size_t uLength = 32;
+		// DEL-BY-LEETEN 04/14/2012:	size_t uLength = 32;
 		#endif		// MOD-BY-LEETEN 04/13/2012-END
 
-			// create a small triangle meshes
-			#if	TEST_MESH == TEST_MESH_TETRAHEDRON
-			// a small tetrahedron
-			TBuffer<float4> pf4Vertices;
-			pf4Vertices.alloc(4);
-			pf4Vertices[0] = make_float4(1.0f, 1.0f, 1.0f, 1.0f);
-			pf4Vertices[1] = make_float4((float)uLength - 2.0f, (float)uLength - 2.0f, 2.0f, 1.0f);
-			pf4Vertices[2] = make_float4((float)uLength - 2.0f, 2.0f, (float)uLength - 2.0f, 1.0f);
-			pf4Vertices[3] = make_float4(2.0f, (float)uLength - 2.0f, (float)uLength - 2.0f, 1.0f);
+		// ADD-BY-LEETEN 04/14/2012-BEGIN
+		TBuffer<float4> pf4Vertices;
+		TBuffer<ulong4> pu4TriangleVertices;
+		switch(iTestMesh)
+		{
+		case	TEST_MESH_TETRAHEDRON:
+			{
+		// ADD-BY-LEETEN 04/14/2012-END
 
-			TBuffer<ulong4> pu4TriangleVertices;
+			// create a small triangle meshes
+			// DEL-BY-LEETEN 04/14/2012:	#if	TEST_MESH == TEST_MESH_TETRAHEDRON
+			// a small tetrahedron
+			// DEL-BY-LEETEN 04/14/2012:	TBuffer<float4> pf4Vertices;
+			pf4Vertices.alloc(4);
+			#if	0	// MOD-BY-LEETEN 04/14/2012-FROM:
+				pf4Vertices[0] = make_float4(1.0f, 1.0f, 1.0f, 1.0f);
+				pf4Vertices[1] = make_float4((float)uLength - 2.0f, (float)uLength - 2.0f, 2.0f, 1.0f);
+				pf4Vertices[2] = make_float4((float)uLength - 2.0f, 2.0f, (float)uLength - 2.0f, 1.0f);
+				pf4Vertices[3] = make_float4(2.0f, (float)uLength - 2.0f, (float)uLength - 2.0f, 1.0f);
+			#else		// MOD-BY-LEETEN 04/14/2012-TO:
+			pf4Vertices[0] = make_float4(0.0f, 0.0f, 0.0f, 1.0f);
+			pf4Vertices[1] = make_float4(1.0f, 1.0f, 0.0f, 1.0f);
+			pf4Vertices[2] = make_float4(1.0f, 0.0f, 1.0f, 1.0f);
+			pf4Vertices[3] = make_float4(0.0f, 1.0f, 1.0f, 1.0f);
+			#endif		// MOD-BY-LEETEN 04/14/2012-END
+
+			// DEL-BY-LEETEN 04/14/2012:	TBuffer<ulong4> pu4TriangleVertices;
 			pu4TriangleVertices.alloc(4);
 			pu4TriangleVertices[0] = make_ulong4(0, 1, 2, 0);
 			pu4TriangleVertices[1] = make_ulong4(0, 1, 3, 0);
 			pu4TriangleVertices[2] = make_ulong4(0, 2, 3, 0);
 			pu4TriangleVertices[3] = make_ulong4(1, 2, 3, 0);
-			#elif	TEST_MESH == TEST_MESH_TUBE,
+		// ADD-BY-LEETEN 04/14/2012-BEGIN
+			}	break;
+
+		case	TEST_MESH_TUBE:
+			{
+		// ADD-BY-LEETEN 04/14/2012-END
+
+			// DEL-BY-LEETEN 04/14/2012:	#elif	TEST_MESH == TEST_MESH_TUBE,
 			// a tube
 			double dRadius = 0.25;
 			float4 f4Origin = make_float4(0.5f, 0.5f, 0.5f, 1.0f);
-			TBuffer<float4> pf4Vertices;
-			pf4Vertices.alloc( (uLength + 1) * 2 );
-			TBuffer<ulong4> pu4TriangleVertices;
-			pu4TriangleVertices.alloc( uLength * 2 );
-			for(size_t p = 0, l = 0; l < uLength  + 1; l++, p+=2)
-			{
+			#if	0	// MOD-BY-LEETEN 04/14/2012-FROM:
+				TBuffer<float4> pf4Vertices;
+				pf4Vertices.alloc( (uLength + 1) * 2 );
+				TBuffer<ulong4> pu4TriangleVertices;
+				pu4TriangleVertices.alloc( uLength * 2 );
+				for(size_t p = 0, l = 0; l < uLength  + 1; l++, p+=2)
+				{
 				double dTheta = 2.0 * M_PI * (double)l / (double)uLength;
+			#else		// MOD-BY-LEETEN 04/14/2012-TO:
+			size_t uNrOfSlices = iNrOfSlices;
+			pf4Vertices.alloc( (uNrOfSlices + 1) * 2 );
+			pu4TriangleVertices.alloc( uNrOfSlices * 2 );
+			for(size_t p = 0, l = 0; l < uNrOfSlices + 1; l++, p+=2)
+			{
+				double dTheta = 2.0 * M_PI * (double)l / (double)iNrOfSlices;
+			#endif		// MOD-BY-LEETEN 04/14/2012-END
 				double dX = cos(dTheta) * dRadius;
 				double dY = sin(dTheta) * dRadius;
 				pf4Vertices[p]		= make_float4(f4Origin.x + (float)dX, f4Origin.y + (float)dY, 0.0f, 1.0f);
 				pf4Vertices[p+1]	= make_float4(f4Origin.x + (float)dX, f4Origin.y + (float)dY, 1.0f, 1.0f);
-				if( l < uLength )
+				// MOD-BY-LEETEN 04/14/2012-FROM:				if( l < uLength )
+				if( l < uNrOfSlices )
+				// MOD-BY-LEETEN 04/14/2012-END
 				{
 					pu4TriangleVertices[p] =	make_ulong4(p, p+2, p+3, 0);
 					pu4TriangleVertices[p + 1] =	make_ulong4(p, p+3, p+1, 0);
 				}
 			}
-			#elif	TEST_MESH == TEST_MESH_SPHERE,
+		// ADD-BY-LEETEN 04/14/2012-BEGIN
+			}	break;
+
+		case	TEST_MESH_SPHERE:
+			{
+		// ADD-BY-LEETEN 04/14/2012-END
+			// DEL-BY-LEETEN 04/14/2012:	#elif	TEST_MESH == TEST_MESH_SPHERE,
 			// a sphere
 			float4 f4Origin = make_float4(0.5f, 0.5f, 0.5f, 1.0f);
 			float fRadius = 0.25f;
-			size_t uNrOfSlices = 2 * uLength;
-			size_t uNrOfStacks = 2 * uLength;
-			TBuffer<float4> pf4Vertices;
+			#if	0	// MOD-BY-LEETEN 04/14/2012-FROM:
+				size_t uNrOfSlices = 2 * uLength;
+				size_t uNrOfStacks = 2 * uLength;
+			#else		// MOD-BY-LEETEN 04/14/2012-TO:
+			size_t uNrOfSlices = (size_t)iNrOfSlices;
+			size_t uNrOfStacks = uNrOfSlices;
+			#endif		// MOD-BY-LEETEN 04/14/2012-END	
+			// DEL-BY-LEETEN 04/14/2012:	TBuffer<float4> pf4Vertices;
 			pf4Vertices.alloc( (uNrOfSlices + 1) * (uNrOfStacks + 1) );
-			TBuffer<ulong4> pu4TriangleVertices;
+			// DEL-BY-LEETEN 04/14/2012:	TBuffer<ulong4> pu4TriangleVertices;
 			pu4TriangleVertices.alloc( 2 * uNrOfSlices * uNrOfStacks );
 			for(size_t p = 0,	stack = 0; stack < uNrOfStacks + 1; stack++)
 				for(size_t	slice = 0; slice < uNrOfSlices + 1; slice++, p++)
@@ -122,15 +209,28 @@ main(int argn, char* argv[])
 							p2 + uNrOfSlices + 2, 
 							0);
 				}
-			#endif	// #if TEST_MESH
+			// DEL-BY-LEETEN 04/14/2012:	#endif	// #if TEST_MESH
+		// ADD-BY-LEETEN 04/14/2012-BEGIN
+			}	break;
+		}
+		// ADD-BY-LEETEN 04/14/2012-END
+
+		// ADD-BY-LEETEN 04/14/2012-BEGIN
+		LOG_VAR(pf4Vertices.USize());
+		LOG_VAR(pu4TriangleVertices.USize());
+		// ADD-BY-LEETEN 04/14/2012-END
 
 		// ADD-BY-LEETEN 04/13/2012-BEGIN
-		for(size_t le = 5; le < 6; le++)
+		// DEL-BY-LEETEN 04/14/2012:	for(size_t le = 5; le < 6; le++)
 		{
 			TBuffer3D<float> p3DfDist;
-			size_t uLength = 1 << le;
-			LOG_VAR(uLength);
-			p3DfDist.alloc(uLength, uLength, uLength);
+			#if	0	// MOD-BY-LEETEN 04/14/2012-FROM:
+				size_t uLength = 1 << le;
+				LOG_VAR(uLength);
+				p3DfDist.alloc(uLength, uLength, uLength);
+			#else		// MOD-BY-LEETEN 04/14/2012-TO:
+			p3DfDist.alloc(piGridSize[0], piGridSize[1], piGridSize[2]);
+			#endif		// MOD-BY-LEETEN 04/14/2012-END
 
 			TBuffer<float4> pf4Coords;
 			pf4Coords.alloc(p3DfDist.USize());
@@ -139,6 +239,9 @@ main(int argn, char* argv[])
 					for(size_t	w = 0; w < p3DfDist.iWidth; w++, v++)
 						pf4Coords[v] = make_float4(
 							(float)w / (float)(p3DfDist.iWidth - 1), (float)h / (float)(p3DfDist.iHeight - 1), (float)d / (float)(p3DfDist.iDepth - 1), 1.0f);
+
+			LOG_VAR(pf4Coords.USize());	// ADD-BY-LEETEN 04/14/2012
+
 		// ADD-BY-LEETEN 04/13/2012-END
 
 			////////////////////////////////////////////
@@ -157,8 +260,30 @@ main(int argn, char* argv[])
 			for(unsigned int i = 0; i < p3DfDist.USize(); i++)
 				p3DfDist[i] = sqrtf(p3DfDist[i]);
 			char szFileName[1024+1];
-			sprintf(szFileName, "%s.point.dist", (0 == testi)?"gpu":"cpu");
+			// MOD-BY-LEETEN 04/14/2012-FROM:			sprintf(szFileName, "%s.point.dist", (0 == testi)?"gpu":"cpu");
+			sprintf(szFileName, "%s.%s.point.dist", szDistanceFieldFilenamePrefix, szDevice);
+			// MOD-BY-LEETEN 04/14/2012-END
+
 			p3DfDist._Save(szFileName);
+
+			// ADD-BY-LEETEN 04/14/2012-BEGIN
+			// compute the distance from the points to the triangle meshes
+			_GPUDistCompDistFromPointsToTriangles
+			(
+				pf4Coords.USize(),
+				&pf4Coords[0],
+
+				pf4Vertices.USize(),
+				&pf4Vertices[0],
+
+				pu4TriangleVertices.USize(),
+				&pu4TriangleVertices[0],
+
+				!bIsPreCompTransforms,
+
+				&p3DfDist[0]
+			);
+			// ADD-BY-LEETEN 04/14/2012-END
 
 			// compute the distance from the points to the triangle meshes
 			_GPUDistCompDistFromPointsToTriangles
@@ -172,7 +297,9 @@ main(int argn, char* argv[])
 				pu4TriangleVertices.USize(),
 				&pu4TriangleVertices[0],
 
-				false,
+				// MOD-BY-LEETEN 04/14/2012-FROM:				false,
+				bIsPreCompTransforms,
+				// MOD-BY-LEETEN 04/14/2012-END
 
 				&p3DfDist[0]
 			);
@@ -181,7 +308,9 @@ main(int argn, char* argv[])
 				for(unsigned int i = 0; i < p3DfDist.USize(); i++)
 					p3DfDist[i] = sqrtf(p3DfDist[i]);
 			// ADD-BY-LEETEN 04/13/2012-END
-			sprintf(szFileName, "%s.triangle.dist", (0 == testi)?"gpu":"cpu");
+			// MOD-BY-LEETEN 04/14/2012-FROM:		sprintf(szFileName, "%s.triangle.dist", (0 == testi)?"gpu":"cpu");
+			sprintf(szFileName, "%s.%s.triangle.dist", szDistanceFieldFilenamePrefix, szDevice);
+			// MOD-BY-LEETEN 04/14/2012-END
 			p3DfDist._Save(szFileName);
 		}
 	}
