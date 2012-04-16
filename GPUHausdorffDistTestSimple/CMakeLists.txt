@@ -17,7 +17,7 @@ set(WITH_CUDPP 		ON 			CACHE BOOL "Is CUDPP used?")
 # ADD-BY-LEETEN 04/07/2012-END
 
 include_directories(
-	${MY_LIB_DIR}/include
+	${MYLIB_DIR}/include	# MOD-BY-LEETEN 04/16/2012:	${MY_LIB_DIR}/include
 	${3RDPARTY_DIR}/include	
 	${CUDA_TOOLKIT_ROOT_DIR}/include
 	${CUDA_SDK_ROOT_DIR}/common/inc
@@ -25,7 +25,7 @@ include_directories(
 )
 
 link_directories(
-	${MY_LIB_DIR}/lib
+	${MYLIB_DIR}/lib	# MOD-BY-LEETEN 04/16/2012:	${MY_LIB_DIR}/lib
 	${3RDPARTY_DIR}/lib
 	${CUDA_TOOLKIT_ROOT_DIR}/lib/Win32
 	${CUDA_SDK_ROOT_DIR}/common/lib/Win32

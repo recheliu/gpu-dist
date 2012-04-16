@@ -10,6 +10,7 @@ FIND_PACKAGE(CUDA)
 CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
 
 set(MYLIB_DIR 		"~/mylib" 	CACHE PATH "The path to MyLib.")	
+set(3RDPARTY_DIR 	"~/lib" 	CACHE PATH "The path to 3rd party libraries.")	# ADD-BY-LEETEN 04/16
 # ADD-BY-LEETEN 04/07/2012-BEGIN
 set(IS_X64 			OFF 		CACHE BOOL "Is the platform x64?")	
 set(WITH_CUDPP 		ON 			CACHE BOOL "Is CUDPP used?")		
@@ -18,6 +19,7 @@ set(WITH_CUDPP 		ON 			CACHE BOOL "Is CUDPP used?")
 # ADD-BY-LEETEN 04/09/2012-BEGIN
 list(APPEND INC_DIRS
 	${MYLIB_DIR}/include
+	${3RDPARTY_DIR}/include			# ADD-BY-LEETEN 04/16
 	${CUDA_TOOLKIT_ROOT_DIR}/include
 	${CUDA_SDK_ROOT_DIR}/common/inc
 )
@@ -46,6 +48,7 @@ INCLUDE_DIRECTORIES(
 # ADD-BY-LEETEN 04/07/2012-END
 
 link_directories(
+	${3RDPARTY_DIR}/lib			# ADD-BY-LEETEN 04/16
 	${MYLIB_DIR}/lib	# MOD-BY-LEETEN 04/09/2012-FROM:	${MY_LIB_DIR}/lib
 	${CUDA_TOOLKIT_ROOT_DIR}/lib/Win32
 	${CUDA_SDK_ROOT_DIR}/common/lib/Win32

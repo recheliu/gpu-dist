@@ -154,6 +154,115 @@ _CompDistFromTriangle_kernel
 	}
 }
 
+// ADD-BY-LEETEN 04/15/2012-BEGIN
+__constant__ float4 f4Dir_const;
+__constant__ float fThreshold_const = 0.00001f;
+
+__global__ 
+void 
+_CountIntersectingTriangle_kernel
+(
+	unsigned int	uNrOfNeededThreads,
+	float4		pf4Points_device[],
+	float		pfCounts_device[]
+)
+{
+	unsigned int uBlock = gridDim.x * blockIdx.y + blockIdx.x;
+	unsigned int uPoint = uBlock * blockDim.x + threadIdx.x;
+
+	if( uPoint < uNrOfNeededThreads )
+	{
+		float4 f4P = pf4Points_device[uPoint];
+		float4 f4Dir = f4Dir_const;
+
+		// transform P to the new coordinate 
+		float4 f4PA = make_float4(
+			f4P.x - f4A_const.x,
+			f4P.y - f4A_const.y,
+			f4P.z - f4A_const.z,
+			1.0f);
+
+		float4 f4P2 = make_float4(
+			FDot_device(f4PA, f4X_const),
+			FDot_device(f4PA, f4Y_const),
+			FDot_device(f4PA, f4Z_const),
+			1.0f);
+
+		float fY2, fZ2;
+		bool bIsIntersectionImpossible = false;
+		if( fThreshold_const > fabsf(f4P2.x) )
+		{
+			fY2 = f4P2.y;
+			fZ2 = f4P2.z;
+			bIsIntersectionImpossible = true;
+		}
+		else
+		{
+			// compute a point q along the direction (1, 0, 0);
+			float4 f4Q = make_float4(
+				f4P.x + f4Dir.x,
+				f4P.y + f4Dir.y,
+				f4P.z + f4Dir.z,
+				f4P.w + f4Dir.w);			
+
+			// transform Q to the new coordinate 
+			float4 f4QA = make_float4(
+				f4Q.x - f4A_const.x,
+				f4Q.y - f4A_const.y,
+				f4Q.z - f4A_const.z,
+				1.0f);
+
+			float4 f4Q2 = make_float4(
+				FDot_device(f4QA, f4X_const),
+				FDot_device(f4QA, f4Y_const),
+				FDot_device(f4QA, f4Z_const),
+				1.0f);
+
+			float fScale = f4Q2.x - f4P2.x;
+			if( 0.0f != fScale )
+			{
+				float fStep = (0.0f - f4P2.x) / fScale;
+				if( fStep > 0 )
+				{
+					fY2 = f4P2.y + (f4Q2.y - f4P2.y) * fStep;
+					fZ2 = f4P2.z + (f4Q2.z - f4P2.z) * fStep;
+				}
+				else
+					bIsIntersectionImpossible = true;
+			}
+			else
+				bIsIntersectionImpossible = true;
+		}
+
+		// compute the intesection between the vector from Q2 to P2 and the plan X = 0
+		float fNewCount = 0.0f;
+		if( !bIsIntersectionImpossible ) 
+		{
+			// solve (fS, fT) s.t. v3P2 = fS * v3C2 + fT * v3BA
+			// fY2		v3B2[1]	v3C2[1]		fS
+			//	= [			] [		]
+			// fZ2		v3B2[2]	v3C2[2]		fT
+			// ->
+			//		+v3C2[2]	-v3C2[1]	fY2		fS
+			// ___	[				] [		] = [		]
+			// det		-v3B2[2]	+v3B2[1]	fZ2		fT
+			float fS = (+f4C2_const.z * fY2 - f4C2_const.y * fZ2) / fDet_const;
+			float fT = (-f4B2_const.z * fY2 + f4B2_const.y * fZ2) / fDet_const;
+
+			if(	fThreshold_const < fabsf(f4P2.x) &&
+				0.0f + fThreshold_const <= fS		&& fS		<= 1.0f - fThreshold_const &&
+				0.0f + fThreshold_const <= fT		&& fT		<= 1.0f - fThreshold_const &&
+				0.0f + fThreshold_const <= fS + fT	&& fS + fT	<= 1.0f	- fThreshold_const )
+			{
+				fNewCount = 1.0f;
+			}
+		}
+		pfCounts_device[uPoint] += fNewCount;
+	}
+}
+// ADD-BY-LEETEN 04/15/2012-END
+
+
 /*
 
 $Log: kernel_CompComplexity.h,v $
