@@ -9,6 +9,8 @@
 	#include "cudpp.h"
 #endif
 
+#include <lib3ds/vector.h>	// ADD-BY-LEETEN 04/15/2012
+
 #ifdef	 WIN32
 	#undef	 WIN32
 	#include "liblog.h"
@@ -63,6 +65,22 @@ extern CUDPPHandle cudpp;
 
 extern bool bIsUsingCpu;
 extern bool bIsPrintingTiming;
+
+// ADD-BY-LEETEN 04/15/2012-BEGIN
+void
+_CompTransform
+(
+	const float4& f4A,
+	const float4& f4B,
+	const float4& f4C,
+	Lib3dsVector v3X,
+	Lib3dsVector v3Y,
+	Lib3dsVector v3Z,
+	Lib3dsVector v3B2,
+	Lib3dsVector v3C2,
+	float& fDet
+ );
+// ADD-BY-LEETEN 04/15/2012-END
 
 /*
 

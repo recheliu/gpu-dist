@@ -111,6 +111,25 @@ _GPUDistCompDistFromPointsToTriangles
 );
 // ADD-BY-LEETEN 04/13/2012-END
 
+// ADD-BY-LEETEN 04/15/2012-BEGIN
+void
+_GPUDistCountIntersectingTriangles
+(
+	size_t uNrOfPoints1,
+	float4 pf4Points1[],
+
+	size_t uNrOfPoints2,
+	float4 pf4Points2[],
+
+	size_t uNrOfTriangles,
+	ulong4 pu4TriangleVertices[],
+
+	float4 f4Dir,
+
+	float pfCount[]
+);
+// ADD-BY-LEETEN 04/15/2012-END
+
 // ADD-BY-LEETEN 04/05/2012-BEGIN
 //! Initialized GPUDist
 void

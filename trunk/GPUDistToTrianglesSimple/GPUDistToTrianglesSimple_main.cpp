@@ -45,6 +45,11 @@ main(int argn, char* argv[])
 		"sphere",	TEST_MESH_SPHERE);
 	// ADD-BY-LEETEN 04/14/2012-END
 
+	// ADD-BY-LEETEN 04/15/2012-BEGIN
+	int iIsPreCompTransforms;
+	_OPTAddBoolean("--is-pre-comp-transforms", &iIsPreCompTransforms, OPT_FALSE);
+	// ADD-BY-LEETEN 04/15/2012-END
+
 	ASSERT_OR_LOG(
 		BOPTParse(argv, argn, 1), 
 		printf("Invalid Arguments."));
@@ -59,7 +64,9 @@ main(int argn, char* argv[])
 
 	_GPUDistPrintTiming(true);
 
-	bool bIsPreCompTransforms = true;	// ADD-BY-LEETEN 04/14/2012
+	// MOD-BY-LEETEN 04/15/2012:	bool bIsPreCompTransforms = true;	// ADD-BY-LEETEN 04/14/2012
+	bool bIsPreCompTransforms = iIsPreCompTransforms;	
+	// MOD-BY-LEETEN 04/15/2012-END
 
 	// build the grid
 	// DEL-BY-LEETEN 04/14/2012:	for(int testi = 0; testi < 1; testi++)
@@ -266,24 +273,26 @@ main(int argn, char* argv[])
 
 			p3DfDist._Save(szFileName);
 
-			// ADD-BY-LEETEN 04/14/2012-BEGIN
-			// compute the distance from the points to the triangle meshes
-			_GPUDistCompDistFromPointsToTriangles
-			(
-				pf4Coords.USize(),
-				&pf4Coords[0],
+			#if	0	// DEL-BY-LEETEN 04/15/2012-BEGIN
+				// ADD-BY-LEETEN 04/14/2012-BEGIN
+				// compute the distance from the points to the triangle meshes
+				_GPUDistCompDistFromPointsToTriangles
+				(
+					pf4Coords.USize(),
+					&pf4Coords[0],
 
-				pf4Vertices.USize(),
-				&pf4Vertices[0],
+					pf4Vertices.USize(),
+					&pf4Vertices[0],
 
-				pu4TriangleVertices.USize(),
-				&pu4TriangleVertices[0],
+					pu4TriangleVertices.USize(),
+					&pu4TriangleVertices[0],
 
-				!bIsPreCompTransforms,
+					!bIsPreCompTransforms,
 
-				&p3DfDist[0]
-			);
-			// ADD-BY-LEETEN 04/14/2012-END
+					&p3DfDist[0]
+				);
+				// ADD-BY-LEETEN 04/14/2012-END
+			#endif		// DEL-BY-LEETEN 04/15/2012-END
 
 			// compute the distance from the points to the triangle meshes
 			_GPUDistCompDistFromPointsToTriangles
@@ -303,6 +312,7 @@ main(int argn, char* argv[])
 
 				&p3DfDist[0]
 			);
+
 			// ADD-BY-LEETEN 04/13/2012-BEGIN
 			if( !BGPUDistIsDistSquaredRoot() )
 				for(unsigned int i = 0; i < p3DfDist.USize(); i++)
