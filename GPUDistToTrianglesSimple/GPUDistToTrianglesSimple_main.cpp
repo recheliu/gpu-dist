@@ -10,16 +10,27 @@
 
 #include "GPUDistLib.h"
 
-#define TEST_MESH_TETRAHEDRON	1
-#define TEST_MESH_TUBE		2
-#define TEST_MESH_SPHERE	3	
-#define TEST_MESH		TEST_MESH_SPHERE
+#if	0	// MOD-BY-LEETEN 04/17/2012-FROM:
+	#define TEST_MESH_TETRAHEDRON	1
+	#define TEST_MESH_TUBE		2
+	#define TEST_MESH_SPHERE	3	
+	#define TEST_MESH		TEST_MESH_SPHERE
+#else		// MOD-BY-LEETEN 04/17/2012-TO:
+enum
+{
+	TEST_MESH_TETRAHEDRON,
+	TEST_MESH_TUBE,
+	TEST_MESH_SPHERE,
+	NR_OF_TEST_MESHES
+};
+#endif		// MOD-BY-LEETEN 04/17/2012-END
 
 int 
 main(int argn, char* argv[])
 {
 	// ADD-BY-LEETEN 04/14/2012-BEGIN
 	_OPTInit();
+
 	int iNrOfSlices;
 	_OPTAddIntegerVector("--nr-of-slices", 1, 
 		&iNrOfSlices, 16);
@@ -29,7 +40,6 @@ main(int argn, char* argv[])
 		&piGridSize[0], 16,
 		&piGridSize[1], 16,
 		&piGridSize[2], 16);
-
 	char* szDistanceFieldFilenamePrefix;
 	_OPTAddStringVector("--distance-field-filename-prefix", 1, 
 		&szDistanceFieldFilenamePrefix, "distance_field");
@@ -39,7 +49,9 @@ main(int argn, char* argv[])
 	_OPTAddBoolean("--is-using-cpu", &iIsUsingCpu, OPT_FALSE);
 
 	int iTestMesh;
-	_OPTAddEnum("--test-mesh", &iTestMesh, 3, TEST_MESH_SPHERE,
+	// MOD-BY-LEETEN 04/17/2012-FROM:	_OPTAddEnum("--test-mesh", &iTestMesh, 3, TEST_MESH_SPHERE,
+	_OPTAddEnum("--test-mesh", &iTestMesh, TEST_MESH_SPHERE, NR_OF_TEST_MESHES, 
+	// MOD-BY-LEETEN 04/17/2012-END
 		"tetrahedron",	TEST_MESH_TETRAHEDRON,
 		"tube",		TEST_MESH_TUBE,
 		"sphere",	TEST_MESH_SPHERE);
@@ -316,7 +328,11 @@ main(int argn, char* argv[])
 			// ADD-BY-LEETEN 04/13/2012-BEGIN
 			if( !BGPUDistIsDistSquaredRoot() )
 				for(unsigned int i = 0; i < p3DfDist.USize(); i++)
+				// ADD-BY-LEETEN 04/17/2012-BEGIN
+				{
+				// ADD-BY-LEETEN 04/17/2012-END
 					p3DfDist[i] = sqrtf(p3DfDist[i]);
+				}	// ADD-BY-LEETEN 04/17/2012
 			// ADD-BY-LEETEN 04/13/2012-END
 			// MOD-BY-LEETEN 04/14/2012-FROM:		sprintf(szFileName, "%s.triangle.dist", (0 == testi)?"gpu":"cpu");
 			sprintf(szFileName, "%s.%s.triangle.dist", szDistanceFieldFilenamePrefix, szDevice);
