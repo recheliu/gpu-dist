@@ -736,6 +736,10 @@ LIBCLOCK_BEGIN(bIsPrintingTiming);
 				#endif	// MOD-BY-LEETEN 04/15/2012-END
 
 				CUDA_SAFE_CALL_NO_SYNC( cudaMemcpyToSymbol("f4A_const",	&f4A,	sizeof(f4A),	0, cudaMemcpyHostToDevice) );
+				// ADD-BY-LEETEN 04/17/2012-BEGIN
+				CUDA_SAFE_CALL_NO_SYNC( cudaMemcpyToSymbol("f4B_const",	&f4B,	sizeof(f4B),	0, cudaMemcpyHostToDevice) );
+				CUDA_SAFE_CALL_NO_SYNC( cudaMemcpyToSymbol("f4C_const",	&f4C,	sizeof(f4C),	0, cudaMemcpyHostToDevice) );
+				// ADD-BY-LEETEN 04/17/2012-END
 				CUDA_SAFE_CALL_NO_SYNC( cudaMemcpyToSymbol("f4X_const",	&v3X,	3 * sizeof(v3X[0]),	0, cudaMemcpyHostToDevice) );
 				CUDA_SAFE_CALL_NO_SYNC( cudaMemcpyToSymbol("f4Y_const",	&v3Y,	3 * sizeof(v3Y[0]),	0, cudaMemcpyHostToDevice) );
 				CUDA_SAFE_CALL_NO_SYNC( cudaMemcpyToSymbol("f4Z_const",	&v3Z,	3 * sizeof(v3Z[0]),	0, cudaMemcpyHostToDevice) );

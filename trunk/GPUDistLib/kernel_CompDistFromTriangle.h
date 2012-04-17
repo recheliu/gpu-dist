@@ -3,6 +3,10 @@
 #include "device_Vector.h"
 
 __constant__ float4	f4A_const;
+// ADD-BY-LEETEN 04/17/2012-BEGIN
+__constant__ float4	f4B_const;
+__constant__ float4	f4C_const;
+// ADD-BY-LEETEN 04/17/2012-END
 __constant__ float4	f4X_const;
 __constant__ float4	f4Y_const;
 __constant__ float4	f4Z_const;
@@ -78,6 +82,67 @@ _CompDistToEdge2D_device
 	*pfDist = fD;
 }
 
+// ADD-BY-LEETEN 04/17/2012-BEGIN
+__device__
+void
+_CompDistToEdge_device
+(
+	float4 f4P,
+	float4 f4A,
+	float4 f4B,
+
+	float *pfDist
+)
+{
+	float4 f4AP = make_float4(
+		f4P.x - f4A.x,
+		f4P.y - f4A.y,
+		f4P.z - f4A.z,
+		0.0f);
+	float fAP = f4AP.x * f4AP.x + f4AP.y * f4AP.y + f4AP.z * f4AP.z;
+	#if	IS_SQRT
+	fAP = sqrtf(fAP);
+	#endif	// #if	IS_SQRT
+
+	float4 f4AB = make_float4(
+		f4B.x - f4A.x,
+		f4B.y - f4A.y,
+		f4B.z - f4A.z,
+		0.0f);
+	float fAB = sqrtf(f4AB.x * f4AB.x + f4AB.y * f4AB.y + f4AB.z * f4AB.z);
+
+	float fD = fAP;
+	if( 0.0f < fAB )
+	{
+		float fAP2 = (f4AB.x * f4AP.x + f4AB.y * f4AP.y + f4AB.z * f4AP.z) / fAB;
+		if( 0.0f > fAP2 )
+			fD = fAP;
+		else
+		if( fAB < fAP2 )
+		{
+			float4 f4BP = make_float4(	
+				f4P.x - f4B.x,
+				f4P.y - f4B.y,
+				f4P.z - f4B.z,
+				0.0f);
+			float fBP = f4BP.x * f4BP.x + f4BP.y * f4BP.y + f4BP.z * f4BP.z;
+			#if	IS_SQRT
+			fBP = sqrtf(fBP);
+			#endif	// #if	IS_SQRT
+			fD = fBP;
+		}
+		else
+			#if	IS_SQRT
+			fD = sqrtf(fAP * fAP - fAP2 * fAP2);
+			#else	// #if	IS_SQRT
+			fD = fAP - fAP2 * fAP2;
+			#endif	// #if	IS_SQRT
+	}
+
+	*pfDist = fD;
+}
+// ADD-BY-LEETEN 04/17/2012-END
+
 __global__ 
 void 
 _CompDistFromTriangle_kernel
@@ -94,6 +159,19 @@ _CompDistFromTriangle_kernel
 	if( uPoint1 < uNrOfNeededThreads )
 	{
 		float4 f4P = pf4Points1_device[uPoint1];
+
+		// ADD-BY-LEETEN 04/17/2012-BEGIN
+		float fDist = 0.0f;
+		if( !fDet_const )
+		{
+			float fD1, fD2, fD3;
+			_CompDistToEdge_device(f4P,	f4B_const,	f4C_const,	&fD1);	fDist = fD1;
+			_CompDistToEdge_device(f4P,	f4A_const,	f4B_const,	&fD2);	fDist = min(fDist, fD2);
+			_CompDistToEdge_device(f4P,	f4A_const,	f4C_const,	&fD3);	fDist = min(fDist, fD3);
+		}
+		else
+		{
+		// ADD-BY-LEETEN 04/17/2012-END
 
 		// and transform P to the new coordinate 
 		float4 f4PA = make_float4(
@@ -119,7 +197,9 @@ _CompDistFromTriangle_kernel
 		float fS = (+f4C2_const.z * f4P2.y - f4C2_const.y * f4P2.z) / fDet_const;
 		float fT = (-f4B2_const.z * f4P2.y + f4B2_const.y * f4P2.z) / fDet_const;
 
-		float fDist = fabsf(f4P2.x);
+		// MOD-BY-LEETEN 04/17/2012-FROM:		float fDist = fabsf(f4P2.x);
+		fDist = fabsf(f4P2.x);
+		// MOD-BY-LEETEN 04/17/2012-END:
 		// ADD-BY-LEETEN 04/13/2012-BEGIN
 		#if	!IS_SQRT	
 		fDist *= fDist;
@@ -144,6 +224,7 @@ _CompDistFromTriangle_kernel
 			fDist = sqrtf(fDistToEdge2D * fDistToEdge2D + fDist * fDist);
 			#endif	// #if	!IS_SQRT	// ADD-BY-LEETEN 04/13/2012
 		}
+		}	// ADD-BY-LEETEN 04/17/2012
 
 		if( uTriangle > 0 )
 		{
