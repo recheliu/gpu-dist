@@ -79,7 +79,8 @@ endif()
 if(DEFINED WIN32)	
 	target_link_libraries(${PROJECT_NAME}
 		debug	libopt_d	optimized	libopt_r
-	)
+		debug	lib3ds-120sd	optimized	lib3ds-120sd	# ADD-BY-LEETEN 04/17/2012
+		)
 else()
 	target_link_libraries(${PROJECT_NAME}
 		libopt
@@ -90,11 +91,14 @@ target_link_libraries(${PROJECT_NAME}
 	GPUDistLib
 	)
 
-# ADD-BY-LEETEN 04/13/2012-BEGIN
-target_link_libraries(${PROJECT_NAME}
-	lib3ds-120s
-)
-# ADD-BY-LEETEN 04/13/2012-END
+# DEL-BY-LEETEN 04/17/2012-BEGIN
+# # ADD-BY-LEETEN 04/13/2012-BEGIN
+# target_link_libraries(${PROJECT_NAME}
+	# lib3ds-120s
+# )
+# # ADD-BY-LEETEN 04/13/2012-END
+# DEL-BY-LEETEN 04/17/2012-END
+
 	
 # ADD-BY-LEETEN 04/09/2012-BEGIN
 install(
