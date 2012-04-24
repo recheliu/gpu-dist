@@ -79,6 +79,7 @@ _CompDistToEdge2D_device
 			// MOD-BY-LEETEN 04/13/2012-END			
 	}
 
+	fD = max(fD, 0.0f);	// ADD-BY-LEETEN 04/24/2012
 	*pfDist = fD;
 }
 
@@ -139,6 +140,7 @@ _CompDistToEdge_device
 			#endif	// #if	IS_SQRT
 	}
 
+	fD = max(fD, 0.0f);	// ADD-BY-LEETEN 04/24/2012
 	*pfDist = fD;
 }
 // ADD-BY-LEETEN 04/17/2012-END
