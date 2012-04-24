@@ -451,6 +451,7 @@ LIBCLOCK_BEGIN(bIsPrintingTiming);
 LIBCLOCK_END(bIsPrintingTiming);
 
 LIBCLOCK_BEGIN(bIsPrintingTiming);
+	FREE_MEMORY(pf4Points1_device);		// ADD-BY-LEETEN 04/24/2012
 	FREE_MEMORY_ON_HOST(pfDist_host);
 	FREE_MEMORY(pfDist_device);
 LIBCLOCK_END(bIsPrintingTiming);
