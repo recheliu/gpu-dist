@@ -21,6 +21,11 @@ enum
 	TEST_MESH_TETRAHEDRON,
 	TEST_MESH_TUBE,
 	TEST_MESH_SPHERE,
+	// ADD-BY-LEETEN 04/24/2012-BEGIN
+	TEST_MESH_ISO_VERTICES,	
+	TEST_MESH_ISO_TRIANGLES,
+	// ADD-BY-LEETEN 04/24/2012-END
+
 	NR_OF_TEST_MESHES
 };
 #endif		// MOD-BY-LEETEN 04/17/2012-END
@@ -54,7 +59,26 @@ main(int argn, char* argv[])
 	// MOD-BY-LEETEN 04/17/2012-END
 		"tetrahedron",	TEST_MESH_TETRAHEDRON,
 		"tube",		TEST_MESH_TUBE,
-		"sphere",	TEST_MESH_SPHERE);
+		// MOD-BY-LEETEN 04/24/2012-FROM:		"sphere",	TEST_MESH_SPHERE);
+		"sphere",	TEST_MESH_SPHERE,
+		"iso-vertices",	TEST_MESH_ISO_VERTICES,
+		"iso-triangles",TEST_MESH_ISO_TRIANGLES
+		);
+		// MOD-BY-LEETEN 04/24/2012-END
+
+	// ADD-BY-LEETEN 04/24/2012-BEGIN
+	char *szVertexHeaderFilePath;
+	char *szVertexDataFilePath;
+	char *szTrianglesHeaderFilePath;
+	char *szTriangleDataFilePath;
+	_OPTAddStringVector("--iso-mesh", 4,
+		&szVertexHeaderFilePath, NULL,
+		&szVertexDataFilePath, NULL,
+		&szTrianglesHeaderFilePath, NULL,
+		&szTriangleDataFilePath, NULL
+		);
+	// ADD-BY-LEETEN 04/24/2012-END
+
 	// ADD-BY-LEETEN 04/14/2012-END
 
 	// ADD-BY-LEETEN 04/15/2012-BEGIN
@@ -69,7 +93,9 @@ main(int argn, char* argv[])
 	LOG_VAR(szDistanceFieldFilenamePrefix);
 	LOG_VAR(iNrOfSlices);
 	LOG(printf("Grid Size = %d %d %d", piGridSize[0], piGridSize[1], piGridSize[2]));
-	char *szDevice = (iIsUsingCpu)?"cpu":"gpu";
+	// MOD-BY-LEETEN 04/24/2012-FROM:	char *szDevice = (iIsUsingCpu)?"cpu":"gpu";
+	const char *szDevice = (iIsUsingCpu)?"cpu":"gpu";
+	// MOD-BY-LEETEN 04/24/2012-END
 	LOG_VAR(szDevice);
 	// ADD-BY-LEETEN 04/14/2012-END
 	_GPUDistInit();	// ADD-BY-LEETEN 04/07/2012
@@ -111,6 +137,90 @@ main(int argn, char* argv[])
 		TBuffer<ulong4> pu4TriangleVertices;
 		switch(iTestMesh)
 		{
+		// ADD-BY-LEETEN 04/24/2012-BEGIN
+		case TEST_MESH_ISO_TRIANGLES:
+			{
+			FILE *fp;
+
+			ASSERT_OR_LOG(NULL !=		szVertexHeaderFilePath,		fprintf(stderr, "Missing szVertexHeaderFilePath"));
+			ASSERT_OR_LOG(fp = fopen(	szVertexHeaderFilePath, "rt"),	perror(szVertexHeaderFilePath));
+			int iNrOfVertices;	fscanf(fp, "%d", &iNrOfVertices);	fclose(fp);
+			pf4Vertices.alloc(iNrOfVertices);
+
+			TBuffer<float> pfVertices;	
+			pfVertices.alloc(3 * iNrOfVertices);
+
+			ASSERT_OR_LOG(NULL !=		szVertexDataFilePath,		fprintf(stderr, "Missing szVertexDataFilePath"));
+			ASSERT_OR_LOG(fp = fopen(	szVertexDataFilePath, "rb"),	perror(szVertexDataFilePath));
+			fread(&pfVertices[0], sizeof(pfVertices[0]), pfVertices.USize(), fp);	fclose(fp);
+			for(size_t v = 0; v < pf4Vertices.USize(); v++)
+			{
+				pf4Vertices[v] = make_float4(
+					pfVertices[v*3+0] / (float)(piGridSize[0] - 1),
+					pfVertices[v*3+1] / (float)(piGridSize[1] - 1),
+					pfVertices[v*3+2] / (float)(piGridSize[2] - 1),
+					1.0f);
+			}
+
+			ASSERT_OR_LOG(NULL !=		szTrianglesHeaderFilePath,	fprintf(stderr, "Missing szTrianglesHeaderFilePath"));
+			ASSERT_OR_LOG(fp = fopen(	szTrianglesHeaderFilePath, "rt"), perror(szTrianglesHeaderFilePath));
+			int iNrOfTriangles;	fscanf(fp, "%d", &iNrOfTriangles);	fclose(fp);
+			pu4TriangleVertices.alloc(iNrOfTriangles);
+
+			TBuffer<int> piTriangles;	
+			piTriangles.alloc(3 * iNrOfTriangles);
+
+			ASSERT_OR_LOG(NULL !=		szTriangleDataFilePath,		fprintf(stderr, "Missing szTriangleDataFilePath"));
+			ASSERT_OR_LOG(fp = fopen(	szTriangleDataFilePath, "rb"),	perror(szTriangleDataFilePath));
+			fread(&piTriangles[0], sizeof(piTriangles[0]), piTriangles.USize(), fp);	fclose(fp);
+			for(size_t t = 0; t < pu4TriangleVertices.USize(); t++)
+			{
+				// LOG(printf("%d %d %d", piTriangles[t*3+0], piTriangles[t*3+1], piTriangles[t*3+2]));
+				pu4TriangleVertices[t] = make_ulong4(
+					piTriangles[t*3+0],
+					piTriangles[t*3+1],
+					piTriangles[t*3+2],
+					0);
+			}
+			}	break;
+
+		case TEST_MESH_ISO_VERTICES:
+			{
+			FILE *fp;
+
+			ASSERT_OR_LOG(NULL !=		szVertexHeaderFilePath,		fprintf(stderr, "Missing szVertexHeaderFilePath"));
+			ASSERT_OR_LOG(fp = fopen(	szVertexHeaderFilePath, "rt"),	perror(szVertexHeaderFilePath));
+			int iNrOfVertices;	fscanf(fp, "%d", &iNrOfVertices);	fclose(fp);
+			pf4Vertices.alloc(iNrOfVertices);
+
+			TBuffer<float> pfVertices;	
+			pfVertices.alloc(3 * iNrOfVertices);
+
+			ASSERT_OR_LOG(NULL !=		szVertexDataFilePath,		fprintf(stderr, "Missing szVertexDataFilePath"));
+			ASSERT_OR_LOG(fp = fopen(	szVertexDataFilePath, "rb"),	perror(szVertexDataFilePath));
+			fread(&pfVertices[0], sizeof(pfVertices[0]), pfVertices.USize(), fp);	fclose(fp);
+			for(size_t v = 0; v < pf4Vertices.USize(); v++)
+			{
+				pf4Vertices[v] = make_float4(
+					pfVertices[v*3+0] / (float)(piGridSize[0] - 1),
+					pfVertices[v*3+1] / (float)(piGridSize[1] - 1),
+					pfVertices[v*3+2] / (float)(piGridSize[2] - 1),
+					1.0f);
+			}
+
+			int iNrOfTriangles = pf4Vertices.USize()/3;
+			pu4TriangleVertices.alloc(iNrOfTriangles);
+			for(size_t t = 0; t < pu4TriangleVertices.USize(); t++)
+			{
+				// LOG(printf("%d %d %d", piTriangles[t*3+0], piTriangles[t*3+1], piTriangles[t*3+2]));
+				pu4TriangleVertices[t] = make_ulong4(
+					t*3+0,
+					t*3+1,
+					t*3+2,
+					0);
+			}
+			}	break;
+		// ADD-BY-LEETEN 04/24/2012-END
 		case	TEST_MESH_TETRAHEDRON:
 			{
 		// ADD-BY-LEETEN 04/14/2012-END
