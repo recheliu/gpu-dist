@@ -19,7 +19,6 @@
 	#include "liblog.h"
 #endif
 #include "cuda_macro.h"	
-// DEL-BY-LEETEN 04/09/2012:	#include "cuda_macro3d.h"	
 #include "libclock.h"
 #include "libbuf.h"	
 
