@@ -1,51 +1,4 @@
-#if	0	// MOD-BY-LEETEN 04/07/2012-FROM:
-	#define _USE_MATH_DEFINES
-	#include <math.h>
-
-	#include <assert.h>	// ADD-BY-LEETEN 03/28/2012
-	#include <cudpp.h>	// ADD-BY-LEETEN 04/05/2012
-
-	#ifdef	 WIN32
-		#undef	 WIN32
-		#include "liblog.h"
-		#define  WIN32
-	#else
-		#include "liblog.h"
-	#endif
-	#include "cuda_macro.h"	
-	#include "cuda_macro3d.h"	
-	#include "libclock.h"
-
-	#include "GPUDistLib.h"	
-
-	#define BLOCK_DIM_X	16
-	#define BLOCK_DIM_Y	8	
-	#define GRID_DIM_X	1024
-	#define GRID_DIM_Y	1024
-	#define BATCH_SIZE	(BLOCK_DIM_X * BLOCK_DIM_Y * GRID_DIM_X * GRID_DIM_Y)
-#else	// MOD-BY-LEETEN 04/07/2012-TO:
 	#include "GPUDistLib_internal.h"
-#endif	// MOD-BY-LEETEN 04/07/2012-END
-
-// DEL-BY-LEETEN 04/15/2012:	#include <lib3ds/vector.h>
-
-#if	0	// DEL-BY-LEETEN 04/04/2012-BEGIN
-	__constant__ int	iNrOfBasis_const;
-	__constant__ int	iNrOfTimeSteps_const;
-
-	int iNrOfBasis;
-	int iNrOfTimeSteps;
-
-	//! A 2D texture of the time difference matrices
-	cudaPitchedPtr cTimeDiffMatrices_pitched;
-	texture<float, 2, cudaReadModeElementType> t2DfTimeDiffMatrices;
-
-	// ADD-BY-LEETEN 03/28/2012-BEGIN
-	#define PRINT_PomCompComplexity_TIMING	1
-	texture<float, 2, cudaReadModeElementType> t2DfMatrix;
-	// ADD-BY-LEETEN 03/28/2012-END
-	texture<float, 2, cudaReadModeElementType> t2DfCoefs;
-#endif		// DEL-BY-LEETEN 04/04/2012-END
 
 // ADD-BY-LEETEN 04/07/2012-BEGIN
 #if	IS_COMP_MULTI_POINTS
@@ -59,13 +12,8 @@ __constant__ float4	pf4Points_const[MAX_NR_OF_COMP_POINTS];
 #include "kernel_TransformTriangle.h"	
 // ADD-BY-LEETEN 04/13/2012-END
 
-#if	0	// MOD-BY-LEETEN 04/05/2012-FROM:
-	static bool bIsUsingCpu;
-	static bool bIsPrintingTiming;
-#else		// MOD-BY-LEETEN 04/05/2012-TO:
 bool bIsUsingCpu;
 bool bIsPrintingTiming;
-#endif		// MOD-BY-LEETEN 04/05/2012-END
 
 // ADD-BY-LEETEN 04/05/2012-BEGIN
 __constant__ int	iDummy_const;
@@ -132,40 +80,6 @@ _GPUDistPrintTiming
 	::bIsPrintingTiming = bIsPrintingTiming;
 }
 
-#if	0	// DEL-BY-LEETEN 04/07/2012-BEGIN
-	void
-	_GPUDistComputeDistanceFieldFromPointsByCpu
-	(
-		size_t uNrOfPoints,
-		float4 pf4Points[],
-		size_t uWidth,
-		size_t uHeight,
-		size_t uDepth,
-		float pfDist[]
-	)
-	{
-	LIBCLOCK_INIT(bIsPrintingTiming, __FUNCTION__);
-	LIBCLOCK_BEGIN(bIsPrintingTiming);
-		for(size_t v = 0,	d = 0; d < uDepth; d++)
-			for(size_t		h = 0; h < uHeight; h++)
-				for(size_t	w = 0; w < uWidth; w++, v++)
-				{
-					float fDist = (float)HUGE_VAL;
-					for(size_t p = 0; p < uNrOfPoints; p++)
-					{
-						float fDx = (float)w - pf4Points[p].x;
-						float fDy = (float)h - pf4Points[p].y;
-						float fDz = (float)d - pf4Points[p].z;
-						float fD = sqrt(fDx * fDx + fDy * fDy + fDz * fDz);
-						fDist = min(fDist, fD);
-					}
-					pfDist[v] = sqrtf(fDist);
-				}
-	LIBCLOCK_END(bIsPrintingTiming);
-	LIBCLOCK_PRINT(bIsPrintingTiming);
-	}
-#endif	// DEL-BY-LEETEN 04/07/2012-END
-
 void
 _GPUDistComputeDistanceFieldFromPoints
 (
@@ -197,12 +111,6 @@ LIBCLOCK_BEGIN(bIsPrintingTiming);
 
 	// allocate a 2D linear buffer for the time difference
 	float *pfDist_device;
-	#if	0	// MOD-BY-LEETEN 04/07/2012-FROM:
-		CUDA_SAFE_CALL_NO_SYNC( 
-			cudaMalloc(
-				&pfDist_device,
-				uNrOfVoxels * sizeof(pfDist_device[0]) ) );
-	#else		// MOD-BY-LEETEN 04/07/2012-TO:
 	CUDA_SAFE_CALL_NO_SYNC( 
 		cudaMalloc(
 			&pfDist_device,
@@ -213,7 +121,6 @@ LIBCLOCK_BEGIN(bIsPrintingTiming);
 		cudaMallocHost(
 			&pfDist_host,
 			BATCH_SIZE * sizeof(pfDist_host[0]) ) );
-	#endif		// MOD-BY-LEETEN 04/07/2012-END
 LIBCLOCK_END(bIsPrintingTiming);
 
 LIBCLOCK_BEGIN(bIsPrintingTiming);
@@ -226,14 +133,10 @@ LIBCLOCK_BEGIN(bIsPrintingTiming);
 	{
 		// allocate iNrOfElements x iNrOfTimeSteps - 1 threads
 		dim3 v3Blk = dim3(BLOCK_DIM_X * BLOCK_DIM_Y);
-		// MOD-BY-LEETEN 04/07/2012-FROM:		size_t uNrOfNeededThreads = (b == uNrOfBatches - 1)?(uNrOfVoxels % BATCH_SIZE):BATCH_SIZE;
 		size_t uNrOfNeededThreads = (b == uNrOfBatches - 1)?uNrOfThreadsLastBatch:BATCH_SIZE;
-		// MOD-BY-LEETEN 04/07/2012-END
 		size_t uNrOfBlocks = (unsigned int)ceilf((float)uNrOfNeededThreads / (float)v3Blk.x);
 		dim3 v3Grid = dim3(
-			// MOD-BY-LEETEN 04/04/2012-FROM:			min(uNrOfBlocks, GRID_DIM_X),
 			min(uNrOfBlocks, (size_t)GRID_DIM_X),
-			// MOD-BY-LEETEN 04/04/2012-END
 			(unsigned int)ceil((double)uNrOfBlocks / (double)GRID_DIM_X)
 			);
 
@@ -275,9 +178,7 @@ LIBCLOCK_BEGIN(bIsPrintingTiming);
 				uWidth,
 				uHeight,
 				uDepth,
-				// MOD-BY-LEETEN 04/07/2012-FROM:				&pfDist_device[b * BATCH_SIZE]
 				&pfDist_device[0]
-				// MOD-BY-LEETEN 04/07/2012-END
 			);	
 			CUT_CHECK_ERROR("_CompDist_kernel() failed");
 		}
@@ -294,28 +195,6 @@ LIBCLOCK_BEGIN(bIsPrintingTiming);
 		// ADD-BY-LEETEN 04/07/2012-END
 	}
 LIBCLOCK_END(bIsPrintingTiming);
-
-#if	0	// DEL-BY-LEETEN 04/07/2012-BEGIN
-	LIBCLOCK_BEGIN(bIsPrintingTiming);
-		// download the result back to the host
-		#if	0	// MOD-BY-LEETEN 04/04/2012-FROM:
-			CUDA_SAFE_CALL_NO_SYNC( 
-				cudaMemcpy(
-					pfDist, 
-					pfDist_device,
-					uNrOfVoxels * sizeof(pfDist),
-					cudaMemcpyDeviceToHost) );
-		#else		// MOD-BY-LEETEN 04/04/2012-TO:
-		CUDA_SAFE_CALL_NO_SYNC( 
-			cudaMemcpy(
-				pfDist, 
-				pfDist_device,
-				uNrOfVoxels * sizeof(pfDist[0]),
-				cudaMemcpyDeviceToHost) );
-		#endif		// MOD-BY-LEETEN 04/04/2012-END
-
-	LIBCLOCK_END(bIsPrintingTiming);
-#endif	// DEL-BY-LEETEN 04/07/2012-END
 
 LIBCLOCK_BEGIN(bIsPrintingTiming);
 	FREE_MEMORY_ON_HOST(pfDist_host);
@@ -500,7 +379,6 @@ _GPUDistCompDistFromPointsToTriangles
 
 LIBCLOCK_INIT(bIsPrintingTiming, __FUNCTION__);
 
-// DEL-BY-LEETEN 04/15/2012:	LIBCLOCK_BEGIN(bIsPrintingTiming);
 	TBuffer<float4> pf4Xs;
 	TBuffer<float4> pf4Ys;
 	TBuffer<float4> pf4Zs;
@@ -610,8 +488,6 @@ LIBCLOCK_INIT(bIsPrintingTiming, __FUNCTION__);
 		FREE_MEMORY(pu4TriangleVertices_device);
 		LIBCLOCK_END(bIsPrintingTiming);	// ADD-BY-LEETEN 04/15/2012
 	}
-// 
-// DEL-BY-LEETEN 04/15/2012:	LIBCLOCK_END(bIsPrintingTiming);
 
 LIBCLOCK_BEGIN(bIsPrintingTiming);
 	// allocate a linear buffer for the time difference
@@ -669,63 +545,6 @@ LIBCLOCK_BEGIN(bIsPrintingTiming);
 				float4 f4B = pf4Points2[pu4TriangleVertices[t].y];
 				float4 f4C = pf4Points2[pu4TriangleVertices[t].z];
 
-				#if	0	// MOD-BY-LEETEN 04/15/2012-FROM:
-					Lib3dsVector v3BA;
-					v3BA[0] = f4B.x - f4A.x;
-					v3BA[1] = f4B.y - f4A.y;
-					v3BA[2] = f4B.z - f4A.z;
-					Lib3dsVector v3Z;
-					lib3ds_vector_copy(v3Z, v3BA);
-					lib3ds_vector_normalize(v3Z);
-					/*
-					float fZ = lib3ds_vector_length(v3Z);
-					if( fZ > 0.0f )
-						for(int c = 0; c < 3; c++)
-							v3Z[c] /= fZ;
-					*/
-
-
-
-					// use the normal N of ABC (ie. the cross product of CA and BA) as X axis
-					Lib3dsVector v3CA;
-					v3CA[0] = f4C.x - f4A.x;
-					v3CA[1] = f4C.y - f4A.y;
-					v3CA[2] = f4C.z - f4A.z;
-					Lib3dsVector v3X;
-					lib3ds_vector_cross(v3X, v3CA, v3BA);
-					lib3ds_vector_normalize(v3X);
-					/*
-					float fX = lib3ds_vector_length(v3X);
-					if( fX > 0.0f )
-						for(int c = 0; c < 3; c++)
-							v3X[c] /= fX;
-					*/
-
-					// use the cross product of BA and N as the y axis
-					Lib3dsVector v3Y;
-					lib3ds_vector_cross(v3Y, v3BA, v3X);
-					lib3ds_vector_normalize(v3Y);
-					/*
-					float fY = lib3ds_vector_length(v3Y);
-					if( fY > 0.0f )
-						for(int c = 0; c < 3; c++)
-							v3Y[c] /= fY;
-					*/
-
-					
-					// transform B and C to the new coordinate
-					Lib3dsVector v3B2;
-					v3B2[0] = lib3ds_vector_dot(v3BA, v3X);
-					v3B2[1] = lib3ds_vector_dot(v3BA, v3Y);
-					v3B2[2] = lib3ds_vector_dot(v3BA, v3Z);
-
-					Lib3dsVector v3C2;
-					v3C2[0] = lib3ds_vector_dot(v3CA, v3X);
-					v3C2[1] = lib3ds_vector_dot(v3CA, v3Y);
-					v3C2[2] = lib3ds_vector_dot(v3CA, v3Z);
-
-					float fDet = v3B2[1] * v3C2[2] - v3B2[2] * v3C2[1];
-				#else	// MOD-BY-LEETEN 04/15/2012-TO:
 				Lib3dsVector v3X, v3Y, v3Z, v3B2, v3C2;
 				float fDet;
 				_CompTransform
@@ -734,7 +553,6 @@ LIBCLOCK_BEGIN(bIsPrintingTiming);
 					v3X, v3Y, v3Z, 
 					v3B2, v3C2, fDet
 				 );
-				#endif	// MOD-BY-LEETEN 04/15/2012-END
 
 				CUDA_SAFE_CALL_NO_SYNC( cudaMemcpyToSymbol("f4A_const",	&f4A,	sizeof(f4A),	0, cudaMemcpyHostToDevice) );
 				// ADD-BY-LEETEN 04/17/2012-BEGIN
