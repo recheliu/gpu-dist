@@ -58,7 +58,11 @@ _GPUDistCompDistFromPointsToPoints
 	float4 pf4Points1[],
 	size_t uNrOfPoints2,
 	float4 pf4Points2[],
-	float pfDist[]
+	// MOD-BY-LEETEN 07/14/2012-FROM:	float pfDist[]
+	float pfDist[],
+	unsigned int *puNearestPoint2 = NULL,
+	void *pReserved = NULL
+	// MOD-BY-LEETEN 07/14/2012-END
 );
 
 //! Compute the distance from each point in Points1 to the sqeuence of points (Points2) on CPUs.
@@ -69,7 +73,11 @@ _GPUDistCompDistFromPointsToPointsByCpu
 	float4 pf4Points1[],
 	size_t uNrOfPoints2,
 	float4 pf4Points2[],
-	float pfDist[]
+	// MOD-BY-LEETEN 07/14/2012-FROM:	float pfDist[]
+	float pfDist[],
+	unsigned int *puNearestPoint2 = NULL,
+	void *pReserved = NULL
+	// MOD-BY-LEETEN 07/14/2012-END
 );
 // ADD-BY-LEETEN 04/07/2012-END
 

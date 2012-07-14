@@ -505,7 +505,11 @@ _GPUDistCompDistFromPointsToPointsByCpu
 	size_t uNrOfPoints2,
 	float4 pf4Points2[],
 
-	float pfDists[]
+	// MOD-BY-LEETEN 07/14/2012-FROM:	float pfDists[]
+	float pfDists[],
+	unsigned int *puNearestPoint2,
+	void *pReserved
+	// MOD-BY-LEETEN 07/14/2012-END
 )
 {
 	LIBCLOCK_INIT(bIsPrintingTiming, __FUNCTION__);
@@ -513,18 +517,32 @@ _GPUDistCompDistFromPointsToPointsByCpu
 	for(size_t p1 = 0; p1 < uNrOfPoints1; p1++)
 	{
 		float fMinDist = (float)HUGE_VAL;
+		// ADD-BY-LEETEN 07/14/2012-BEGIN
+		unsigned int uNearestPoint2 = 0;
+		// ADD-BY-LEETEN 07/14/2012-END
 		for(size_t p2 = 0; p2 < uNrOfPoints2; p2++)
 		{
 			float fDx = pf4Points2[p2].x - pf4Points1[p1].x;
 			float fDy = pf4Points2[p2].y - pf4Points1[p1].y;
 			float fDz = pf4Points2[p2].z - pf4Points1[p1].z;
 			float fDist = fDx * fDx + fDy * fDy + fDz * fDz;
-			fMinDist = min(fMinDist, fDist);
+			// MOD-BY-LEETEN 07/14/2012-FROM:			fMinDist = min(fMinDist, fDist);
+			if( fDist < fMinDist )
+			{
+				fMinDist = fDist;
+				uNearestPoint2 = p2;
+			}
+			// MOD-BY-LEETEN 07/14/2012-END
+
 		}
 #if	IS_SQRT
 		fMinDist = sqrtf(fMinDist);
 #endif
 		pfDists[p1] = fMinDist;
+		// ADD-BY-LEETEN 07/14/2012-BEGIN
+		if( puNearestPoint2 )
+			puNearestPoint2[p1] = uNearestPoint2;
+		// ADD-BY-LEETEN 07/14/2012-END
 	}
 	LIBCLOCK_END(bIsPrintingTiming);
 	LIBCLOCK_PRINT(bIsPrintingTiming);

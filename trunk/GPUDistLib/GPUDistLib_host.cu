@@ -214,7 +214,11 @@ _GPUDistCompDistFromPointsToPoints
 	size_t uNrOfPoints2,
 	float4 pf4Points2[],
 
-	float pfDist[]
+	// MOD-BY-LEETEN 07/14/2012-FROM:	float pfDist[]
+	float pfDist[],
+	unsigned int puNearestPoint2[],
+	void *pReserved
+	// MOD-BY-LEETEN 07/14/2012-END
 )
 {
 	if( bIsUsingCpu )
@@ -227,7 +231,11 @@ _GPUDistCompDistFromPointsToPoints
 			uNrOfPoints2,
 			pf4Points2,
 
-			pfDist
+			// MOD-BY-LEETEN 07/14/2012-FROM:			pfDist
+			pfDist,
+			puNearestPoint2,
+			pReserved
+			// MOD-BY-LEETEN 07/14/2012-END
 		);
 		return;
 	}
@@ -252,10 +260,29 @@ LIBCLOCK_BEGIN(bIsPrintingTiming);
 		cudaMallocHost(
 			&pfDist_host,
 			BATCH_SIZE * sizeof(pfDist_host[0]) ) );
+
+	// ADD-BY-LEETEN 07/14/2012-BEGIN
+	unsigned int *puNearestPoint2_device = NULL;
+	unsigned int *puNearestPoint2_host = NULL;
+	if( puNearestPoint2 )
+	{
+		CUDA_SAFE_CALL_NO_SYNC( 
+			cudaMalloc(
+				&puNearestPoint2_device,
+				BATCH_SIZE * sizeof(puNearestPoint2_device[0]) ) );
+
+		CUDA_SAFE_CALL_NO_SYNC( 
+			cudaMallocHost(
+				&puNearestPoint2_host,
+				BATCH_SIZE * sizeof(puNearestPoint2_host[0]) ) );
+	}
+	// ADD-BY-LEETEN 07/14/2012-END
 LIBCLOCK_END(bIsPrintingTiming);
 
 LIBCLOCK_BEGIN(bIsPrintingTiming);
-	size_t uNrOfBatches = ceilf((float)uNrOfPoints1 / (float)BATCH_SIZE);
+	// MOD-BY-LEETEN 07/14/2012-FROM:	size_t uNrOfBatches = ceilf((float)uNrOfPoints1 / (float)BATCH_SIZE);
+	size_t uNrOfBatches = (size_t)ceilf((float)uNrOfPoints1 / (float)BATCH_SIZE);
+	// MOD-BY-LEETEN 07/14/2012-END
 	size_t uNrOfThreadsLastBatch = uNrOfPoints1 % BATCH_SIZE;
 	uNrOfThreadsLastBatch = (!uNrOfThreadsLastBatch)?BATCH_SIZE:uNrOfThreadsLastBatch;
 	for(size_t b = 0; b < uNrOfBatches; b++) 
@@ -298,7 +325,11 @@ LIBCLOCK_BEGIN(bIsPrintingTiming);
 				p2,
 				uNrOfPoints2ToCompare,
 
-				&pfDist_device[0]
+				// MOD-BY-LEETEN 07/14/2012-FROM:				&pfDist_device[0]
+				&pfDist_device[0],
+				&puNearestPoint2_device[0],
+				pReserved
+				// MOD-BY-LEETEN 07/14/2012-END
 			);	
 			CUT_CHECK_ERROR("_CompDist_kernel() failed");
 		}
@@ -314,7 +345,11 @@ LIBCLOCK_BEGIN(bIsPrintingTiming);
 				p2,
 				pf4Points2[p2],
 
-				&pfDist_device[0]
+				// MOD-BY-LEETEN 07/14/2012-FROM:				&pfDist_device[0]
+				&pfDist_device[0],
+				&puNearestPoint2_device[0],
+				pReserved
+				// MOD-BY-LEETEN 07/14/2012-END
 			);	
 			CUT_CHECK_ERROR("_CompDist_kernel() failed");
 		}
@@ -326,6 +361,22 @@ LIBCLOCK_BEGIN(bIsPrintingTiming);
 				uNrOfNeededThreads * sizeof(pfDist_host[0]),
 				cudaMemcpyDeviceToHost) );
 		memcpy(&pfDist[b * BATCH_SIZE], &pfDist_host[0], uNrOfNeededThreads * sizeof(pfDist[0]));
+
+		// ADD-BY-LEETEN 07/14/2012-BEGIN
+		if(puNearestPoint2)
+		{
+			CUDA_SAFE_CALL_NO_SYNC( 
+				cudaMemcpy(
+					puNearestPoint2_host, 
+					puNearestPoint2_device,
+					uNrOfNeededThreads * sizeof(puNearestPoint2_host[0]),
+					cudaMemcpyDeviceToHost) );
+			memcpy(
+				&puNearestPoint2[b * BATCH_SIZE], 
+				&puNearestPoint2_host[0], 
+				uNrOfNeededThreads * sizeof(puNearestPoint2[0]));
+		}
+		// ADD-BY-LEETEN 07/14/2012-END
 	}
 LIBCLOCK_END(bIsPrintingTiming);
 
@@ -333,6 +384,13 @@ LIBCLOCK_BEGIN(bIsPrintingTiming);
 	FREE_MEMORY(pf4Points1_device);		// ADD-BY-LEETEN 04/24/2012
 	FREE_MEMORY_ON_HOST(pfDist_host);
 	FREE_MEMORY(pfDist_device);
+	// ADD-BY-LEETEN 07/14/2012-BEGIN
+	if( puNearestPoint2 )
+	{
+		FREE_MEMORY_ON_HOST(puNearestPoint2_host);
+		FREE_MEMORY(puNearestPoint2_device);
+	}
+	// ADD-BY-LEETEN 07/14/2012-END
 LIBCLOCK_END(bIsPrintingTiming);
 
 LIBCLOCK_PRINT(bIsPrintingTiming);
@@ -511,7 +569,9 @@ LIBCLOCK_BEGIN(bIsPrintingTiming);
 LIBCLOCK_END(bIsPrintingTiming);
 
 LIBCLOCK_BEGIN(bIsPrintingTiming);
-	size_t uNrOfBatches = ceilf((float)uNrOfPoints1 / (float)BATCH_SIZE);
+	// MOD-BY-LEETEN 07/14/2012-FROM:	size_t uNrOfBatches = ceilf((float)uNrOfPoints1 / (float)BATCH_SIZE);
+	size_t uNrOfBatches = (size_t)ceilf((float)uNrOfPoints1 / (float)BATCH_SIZE);
+	// MOD-BY-LEETEN 07/14/2012-END
 	size_t uNrOfThreadsLastBatch = uNrOfPoints1 % BATCH_SIZE;
 	uNrOfThreadsLastBatch = (!uNrOfThreadsLastBatch)?BATCH_SIZE:uNrOfThreadsLastBatch;
 	for(size_t b = 0; b < uNrOfBatches; b++) 
@@ -665,7 +725,9 @@ LIBCLOCK_BEGIN(bIsPrintingTiming);
 LIBCLOCK_END(bIsPrintingTiming);
 
 LIBCLOCK_BEGIN(bIsPrintingTiming);
-	size_t uNrOfBatches = ceilf((float)uNrOfPoints1 / (float)BATCH_SIZE);
+	// MOD-BY-LEETEN 07/14/2012-FROM:	size_t uNrOfBatches = ceilf((float)uNrOfPoints1 / (float)BATCH_SIZE);
+	size_t uNrOfBatches = (size_t)ceilf((float)uNrOfPoints1 / (float)BATCH_SIZE);
+	// MOD-BY-LEETEN 07/14/2012-END
 	size_t uNrOfThreadsLastBatch = uNrOfPoints1 % BATCH_SIZE;
 	uNrOfThreadsLastBatch = (!uNrOfThreadsLastBatch)?BATCH_SIZE:uNrOfThreadsLastBatch;
 	for(size_t b = 0; b < uNrOfBatches; b++) 
