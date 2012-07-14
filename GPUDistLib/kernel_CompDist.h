@@ -81,7 +81,13 @@ _CompDistFromPoints_kernel
 	float4 	f4Point2,
 	#endif	//	#if	!IS_COMP_MULTI_POINTS	// ADD-BY-LEETEN 04/07/2012
 
-	float pfDists_device[]
+	// MOD-BY-LEETEN 07/14/2012-FROM:	float pfDists_device[]
+	float pfDists_device[],
+
+	unsigned int puNearestPoint2_device[],
+
+	void* pReserved
+	// MOD-BY-LEETEN 07/14/2012-END
 )
 {
 	unsigned int uBlock = gridDim.x * blockIdx.y + blockIdx.x;
@@ -90,6 +96,9 @@ _CompDistFromPoints_kernel
 	if( uPoint1 < uNrOfPoints1 )
 	{
 		float4 f4Point1 = pf4Points1_device[uPoint1];
+		// ADD-BY-LEETEN 07/14/2012-BEGIN
+		unsigned int uNearestPoint = 0; // the index of the smallest distance in this iteration
+		// ADD-BY-LEETEN 07/14/2012-END
 		// ADD-BY-LEETEN 04/07/2012-BEGIN
 		#if	IS_COMP_MULTI_POINTS
 		float fD;
@@ -112,19 +121,44 @@ _CompDistFromPoints_kernel
 
 		// ADD-BY-LEETEN 04/07/2012-BEGIN
 		#if	IS_COMP_MULTI_POINTS
-			fD = (p2i > 0)?min(fD, fDist):fDist;
+		// MOD-BY-LEETEN 07/14/2012-FROM:	fD = (p2i > 0)?min(fD, fDist):fDist;
+		if(0 == p2i)
+		{
+			uNearestPoint = 0;
+			fD = fDist;
+		}
+		else
+		if( fD > fDist )
+		{
+			uNearestPoint = p2i;
+			fD = fDist;
+		}
+		// MOD-BY-LEETEN 07/14/2012-END
 		}
 		float fDist = fD;
 		#endif	// #if	IS_COMP_MULTI_POINTS
 		// ADD-BY-LEETEN 04/07/2012-END
-
+		// ADD-BY-LEETEN 07/14/2012-BEGIN
+		unsigned int uNearestPoint2 = 0;
+		if( NULL != puNearestPoint2_device && uPoint2 > 0 )
+			uNearestPoint2 = puNearestPoint2_device[uPoint1];
+		// ADD-BY-LEETEN 07/14/2012-END
 		if( uPoint2 > 0 )
 		{
 			float fOldDist = pfDists_device[uPoint1];
-			fDist = min(fDist, fOldDist);
+			// MOD-BY-LEETEN 07/14/2012-FROM:			fDist = min(fDist, fOldDist);
+			if( fDist < fOldDist )
+				uNearestPoint2 = uPoint2 + uNearestPoint;
+			else
+				fDist = fOldDist;
+			// MOD-BY-LEETEN 07/14/2012-END
 		}
 
 		pfDists_device[uPoint1] = fDist;
+		// ADD-BY-LEETEN 07/14/2012-BEGIN
+		if( NULL != puNearestPoint2_device )
+			puNearestPoint2_device[uPoint1] = uNearestPoint2;
+		// ADD-BY-LEETEN 07/14/2012-END
 	}
 }
 // ADD-BY-LEETEN 04/07/2012-END
