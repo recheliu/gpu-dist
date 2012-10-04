@@ -11,7 +11,7 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
 
 set(MYLIB_DIR 		"~/mylib" 	CACHE PATH "The path to MyLib.")	
 set(3RDPARTY_DIR 	"~/lib" 	CACHE PATH "The path to 3rd party libraries.")	
-set(IS_X64 			OFF 		CACHE BOOL "Is the platform x64?")	# TEST-ADD
+# DEL-BY-LEETEN 10/04/2012:	set(IS_X64 			OFF 		CACHE BOOL "Is the platform x64?")	# TEST-ADD
 
 include_directories(
 	${MYLIB_DIR}/include		# MOD-BY-LEETEN 04/16/2012-FROM:	${MY_LIB_DIR}/include
