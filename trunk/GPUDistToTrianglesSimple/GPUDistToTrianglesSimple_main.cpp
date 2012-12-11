@@ -21,6 +21,7 @@ enum
 	TEST_MESH_TETRAHEDRON,
 	TEST_MESH_TUBE,
 	TEST_MESH_SPHERE,
+	TEST_MESH_OFF,	// ADD-BY-LEETEN 12/10/2012
 	// ADD-BY-LEETEN 04/24/2012-BEGIN
 	TEST_MESH_ISO_VERTICES,	
 	TEST_MESH_ISO_TRIANGLES,
@@ -61,10 +62,19 @@ main(int argn, char* argv[])
 		"tube",		TEST_MESH_TUBE,
 		// MOD-BY-LEETEN 04/24/2012-FROM:		"sphere",	TEST_MESH_SPHERE);
 		"sphere",	TEST_MESH_SPHERE,
+		"off",		TEST_MESH_OFF,		// ADD-BY-LEETEN 12/10/2012
 		"iso-vertices",	TEST_MESH_ISO_VERTICES,
 		"iso-triangles",TEST_MESH_ISO_TRIANGLES
 		);
 		// MOD-BY-LEETEN 04/24/2012-END
+
+	// ADD-BY-LEETEN 12/10/2012-BEGIN
+	char *szOffFilePath;
+	_OPTAddStringVector("--off-filepath", 1, &szOffFilePath);
+
+	int iIsUsingAbsCoords;
+	_OPTAddBoolean("--is-using-abs-coords", &iIsUsingAbsCoords, OPT_FALSE);
+	// ADD-BY-LEETEN 12/10/2012-END
 
 	// ADD-BY-LEETEN 04/24/2012-BEGIN
 	char *szVertexHeaderFilePath;
@@ -137,6 +147,53 @@ main(int argn, char* argv[])
 		TBuffer<ulong4> pu4TriangleVertices;
 		switch(iTestMesh)
 		{
+		// ADD-BY-LEETEN 12/10/2012-BEGIN
+		case TEST_MESH_OFF:
+			{
+			FILE *fp;
+
+			ASSERT_OR_LOG(NULL !=		szOffFilePath,		fprintf(stderr, "Missing szOffFilePath"));
+			ASSERT_OR_LOG(fp = fopen(	szOffFilePath, "rt"),	perror(szOffFilePath));
+			char szHeader[1024];
+			fgets(szHeader, sizeof(szHeader), fp);	// skip the first line, which is the header OFF
+			int iNrOfVertices;	fscanf(fp, "%d", &iNrOfVertices);
+			int iNrOfTriangles;	fscanf(fp, "%d", &iNrOfTriangles);
+			int iNonUsed;		fscanf(fp, "%d", &iNonUsed);
+
+			pf4Vertices.alloc(iNrOfVertices);
+			for(size_t v = 0; v < pf4Vertices.USize(); v++)
+			{
+				fscanf(fp, "%f %f %f", &pf4Vertices[v].x, &pf4Vertices[v].y, &pf4Vertices[v].z);
+				if( !iIsUsingAbsCoords )
+				{
+					pf4Vertices[v].x /= (float)(piGridSize[0] - 1);
+					pf4Vertices[v].y /= (float)(piGridSize[1] - 1);
+					pf4Vertices[v].z /= (float)(piGridSize[2] - 1);
+				}
+				pf4Vertices[v].w = 1.0f;
+			}
+
+			pu4TriangleVertices.alloc(iNrOfTriangles);
+			for(size_t t = 0; t < pu4TriangleVertices.USize(); t++)
+			{
+				int iN;
+				fscanf(fp, "%d", &iN);
+				for(size_t v = 0; v < (size_t)iN; v++)
+				{
+					int iI;
+					fscanf(fp, "%d", &iI);
+					switch(v){
+					case 0:	pu4TriangleVertices[t].x = iI;	break;
+					case 1:	pu4TriangleVertices[t].y = iI;	break;
+					case 2:	pu4TriangleVertices[t].z = iI;	break;
+					}
+				}
+			}
+
+			fclose(fp);
+			} break;
+		// ADD-BY-LEETEN 12/10/2012-END
+
 		// ADD-BY-LEETEN 04/24/2012-BEGIN
 		case TEST_MESH_ISO_TRIANGLES:
 			{
@@ -366,6 +423,11 @@ main(int argn, char* argv[])
 			for(size_t	v = 0,		d = 0; d < p3DfDist.iDepth; d++)
 				for(size_t		h = 0; h < p3DfDist.iHeight; h++)
 					for(size_t	w = 0; w < p3DfDist.iWidth; w++, v++)
+						// ADD-BY-LEETEN 12/10/2012-BEGIN
+						if(iIsUsingAbsCoords)
+							pf4Coords[v] = make_float4((float)w, (float)h, (float)d, 1.0f);
+						else
+						// ADD-BY-LEETEN 12/10/2012-END
 						pf4Coords[v] = make_float4(
 							(float)w / (float)(p3DfDist.iWidth - 1), (float)h / (float)(p3DfDist.iHeight - 1), (float)d / (float)(p3DfDist.iDepth - 1), 1.0f);
 
