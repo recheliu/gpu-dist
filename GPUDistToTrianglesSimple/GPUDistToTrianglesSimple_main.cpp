@@ -69,8 +69,13 @@ main(int argn, char* argv[])
 		// MOD-BY-LEETEN 04/24/2012-END
 
 	// ADD-BY-LEETEN 12/10/2012-BEGIN
+	#if	0	// MOD-BY-LEETEN 01/11/2013-FROM:
 	char *szOffFilePath;
 	_OPTAddStringVector("--off-filepath", 1, &szOffFilePath);
+	#else	// MOD-BY-LEETEN 01/11/2013-TO:
+	char *szOffFilePath = NULL;
+	_OPTAddStringVector("--off-filepath", 1, &szOffFilePath, szOffFilePath);
+	#endif	// MOD-BY-LEETEN 01/11/2013-END
 
 	int iIsUsingAbsCoords;
 	_OPTAddBoolean("--is-using-abs-coords", &iIsUsingAbsCoords, OPT_FALSE);
