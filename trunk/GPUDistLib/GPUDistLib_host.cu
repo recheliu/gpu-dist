@@ -50,8 +50,13 @@ void
 _GPUDistInit()
 {
 	int iDummy = 0;
+	#if	0	// MOD-BY-LEETEN 01/11/2013-FROM:
 	CUDA_SAFE_CALL_NO_SYNC( 
 		cudaMemcpyToSymbol("iDummy_const",	&iDummy,	sizeof(iDummy),	0, cudaMemcpyHostToDevice) );
+	#else	// MOD-BY-LEETEN 01/11/2013-TO:
+	CUDA_SAFE_CALL_NO_SYNC( 
+		cudaMemcpyToSymbol(iDummy_const,	&iDummy,	sizeof(iDummy),	0, cudaMemcpyHostToDevice) );
+	#endif	// MOD-BY-LEETEN 01/11/2013-END
 
 	#if	defined(WITH_CUDPP)
 	ASSERT_OR_LOG(
@@ -147,12 +152,21 @@ LIBCLOCK_BEGIN(bIsPrintingTiming);
 		for(size_t p = 0; p < uNrOfPoints; p+=MAX_NR_OF_COMP_POINTS)
 		{
 			size_t uNrOfPointsToCompare = min(uNrOfPoints - p, (size_t)MAX_NR_OF_COMP_POINTS);
+			#if	0	// MOD-BY-LEETEN 01/11/2013-FROM:
 			CUDA_SAFE_CALL_NO_SYNC( 
 				cudaMemcpyToSymbol(
 					"pf4Points_const",	
 					&pf4Points[p],	
 					sizeof(pf4Points[0]) * uNrOfPointsToCompare,
 					0, cudaMemcpyHostToDevice) );
+			#else	// MOD-BY-LEETEN 01/11/2013-TO:
+			CUDA_SAFE_CALL_NO_SYNC( 
+				cudaMemcpyToSymbol(
+					pf4Points_const,	
+					&pf4Points[p],	
+					sizeof(pf4Points[0]) * uNrOfPointsToCompare,
+					0, cudaMemcpyHostToDevice) );
+			#endif	// MOD-BY-LEETEN 01/11/2013-END
 
 			_CompDist_kernel<<<v3Grid, v3Blk, 0>>>
 			(
@@ -310,12 +324,21 @@ LIBCLOCK_BEGIN(bIsPrintingTiming);
 		for(size_t p2 = 0; p2 < uNrOfPoints2; p2+=MAX_NR_OF_COMP_POINTS)
 		{
 			size_t uNrOfPoints2ToCompare = min(uNrOfPoints2 - p2, (size_t)MAX_NR_OF_COMP_POINTS);
+			#if	0	// MOD-BY-LEETEN 01/11/2013-FROM:
 			CUDA_SAFE_CALL_NO_SYNC( 
 				cudaMemcpyToSymbol(
 					"pf4Points_const",	
 					&pf4Points2[p2],	
 					sizeof(pf4Points2[0]) * uNrOfPoints2ToCompare,
 					0, cudaMemcpyHostToDevice) );
+			#else	// MOD-BY-LEETEN 01/11/2013-TO:
+			CUDA_SAFE_CALL_NO_SYNC( 
+				cudaMemcpyToSymbol(
+					pf4Points_const,	
+					&pf4Points2[p2],	
+					sizeof(pf4Points2[0]) * uNrOfPoints2ToCompare,
+					0, cudaMemcpyHostToDevice) );
+			#endif	// MOD-BY-LEETEN 01/11/2013-END
 
 			_CompDistFromPoints_kernel<<<v3Grid, v3Blk, 0>>>
 			(
@@ -614,6 +637,7 @@ LIBCLOCK_BEGIN(bIsPrintingTiming);
 					v3B2, v3C2, fDet
 				 );
 
+				#if	0	// MOD-BY-LEETEN 01/11/2013-FROM:
 				CUDA_SAFE_CALL_NO_SYNC( cudaMemcpyToSymbol("f4A_const",	&f4A,	sizeof(f4A),	0, cudaMemcpyHostToDevice) );
 				// ADD-BY-LEETEN 04/17/2012-BEGIN
 				CUDA_SAFE_CALL_NO_SYNC( cudaMemcpyToSymbol("f4B_const",	&f4B,	sizeof(f4B),	0, cudaMemcpyHostToDevice) );
@@ -625,9 +649,21 @@ LIBCLOCK_BEGIN(bIsPrintingTiming);
 				CUDA_SAFE_CALL_NO_SYNC( cudaMemcpyToSymbol("f4B2_const",&v3B2,	3 * sizeof(v3B2[0]),	0, cudaMemcpyHostToDevice) );
 				CUDA_SAFE_CALL_NO_SYNC( cudaMemcpyToSymbol("f4C2_const",&v3C2,	3 * sizeof(v3C2[0]),	0, cudaMemcpyHostToDevice) );
 				CUDA_SAFE_CALL_NO_SYNC( cudaMemcpyToSymbol("fDet_const",&fDet,	sizeof(fDet),	0, cudaMemcpyHostToDevice) );
+				#else	// MOD-BY-LEETEN 01/11/2013-TO:
+				CUDA_SAFE_CALL_NO_SYNC( cudaMemcpyToSymbol(f4A_const,	&f4A,	sizeof(f4A),	0, cudaMemcpyHostToDevice) );
+				CUDA_SAFE_CALL_NO_SYNC( cudaMemcpyToSymbol(f4B_const,	&f4B,	sizeof(f4B),	0, cudaMemcpyHostToDevice) );
+				CUDA_SAFE_CALL_NO_SYNC( cudaMemcpyToSymbol(f4C_const,	&f4C,	sizeof(f4C),	0, cudaMemcpyHostToDevice) );
+				CUDA_SAFE_CALL_NO_SYNC( cudaMemcpyToSymbol(f4X_const,	&v3X,	3 * sizeof(v3X[0]),	0, cudaMemcpyHostToDevice) );
+				CUDA_SAFE_CALL_NO_SYNC( cudaMemcpyToSymbol(f4Y_const,	&v3Y,	3 * sizeof(v3Y[0]),	0, cudaMemcpyHostToDevice) );
+				CUDA_SAFE_CALL_NO_SYNC( cudaMemcpyToSymbol(f4Z_const,	&v3Z,	3 * sizeof(v3Z[0]),	0, cudaMemcpyHostToDevice) );
+				CUDA_SAFE_CALL_NO_SYNC( cudaMemcpyToSymbol(f4B2_const,&v3B2,	3 * sizeof(v3B2[0]),	0, cudaMemcpyHostToDevice) );
+				CUDA_SAFE_CALL_NO_SYNC( cudaMemcpyToSymbol(f4C2_const,&v3C2,	3 * sizeof(v3C2[0]),	0, cudaMemcpyHostToDevice) );
+				CUDA_SAFE_CALL_NO_SYNC( cudaMemcpyToSymbol(fDet_const,&fDet,	sizeof(fDet),	0, cudaMemcpyHostToDevice) );
+				#endif	// MOD-BY-LEETEN 01/11/2013-END
 			}
 			else
 			{
+				#if	0	// MOD-BY-LEETEN 01/11/2013-FROM:
 				CUDA_SAFE_CALL_NO_SYNC( 
 					cudaMemcpyToSymbol("f4A_const",	&f4A,		sizeof(f4A),	0, cudaMemcpyHostToDevice) );
 				CUDA_SAFE_CALL_NO_SYNC( 
@@ -642,6 +678,22 @@ LIBCLOCK_BEGIN(bIsPrintingTiming);
 					cudaMemcpyToSymbol("f4C2_const",&pf4C2s[t],	sizeof(pf4C2s[0]),	0, cudaMemcpyHostToDevice) );
 				CUDA_SAFE_CALL_NO_SYNC( 
 					cudaMemcpyToSymbol("fDet_const",&pfDets[t],	sizeof(pfDets[0]),	0, cudaMemcpyHostToDevice) );
+				#else	// MOD-BY-LEETEN 01/11/2013-TO:
+				CUDA_SAFE_CALL_NO_SYNC( 
+					cudaMemcpyToSymbol(f4A_const,	&f4A,		sizeof(f4A),	0, cudaMemcpyHostToDevice) );
+				CUDA_SAFE_CALL_NO_SYNC( 
+					cudaMemcpyToSymbol(f4X_const,	&pf4Xs[t],	sizeof(pf4Xs[0]),	0, cudaMemcpyHostToDevice) );
+				CUDA_SAFE_CALL_NO_SYNC( 
+					cudaMemcpyToSymbol(f4Y_const,	&pf4Ys[t],	sizeof(pf4Ys[0]),	0, cudaMemcpyHostToDevice) );
+				CUDA_SAFE_CALL_NO_SYNC( 
+					cudaMemcpyToSymbol(f4Z_const,	&pf4Zs[t],	sizeof(pf4Zs[0]),	0, cudaMemcpyHostToDevice) );
+				CUDA_SAFE_CALL_NO_SYNC( 
+					cudaMemcpyToSymbol(f4B2_const,&pf4B2s[t],	sizeof(pf4B2s[0]),	0, cudaMemcpyHostToDevice) );
+				CUDA_SAFE_CALL_NO_SYNC( 
+					cudaMemcpyToSymbol(f4C2_const,&pf4C2s[t],	sizeof(pf4C2s[0]),	0, cudaMemcpyHostToDevice) );
+				CUDA_SAFE_CALL_NO_SYNC( 
+					cudaMemcpyToSymbol(fDet_const,&pfDets[t],	sizeof(pfDets[0]),	0, cudaMemcpyHostToDevice) );
+				#endif	// MOD-BY-LEETEN 01/11/2013-END
 			}
 
 			///////////////////////////// invoke the kernel //////////////////////////
@@ -718,9 +770,13 @@ LIBCLOCK_BEGIN(bIsPrintingTiming);
 			&pfCount_host,
 			BATCH_SIZE * sizeof(pfCount_host[0]) ) );
 
-
+	#if	0	// MOD-BY-LEETEN 01/11/2013-FROM:
 	CUDA_SAFE_CALL_NO_SYNC( 
 		cudaMemcpyToSymbol("f4Dir_const",	&f4Dir,		sizeof(f4Dir),	0, cudaMemcpyHostToDevice) );
+	#else	// MOD-BY-LEETEN 01/11/2013-TO:
+	CUDA_SAFE_CALL_NO_SYNC( 
+		cudaMemcpyToSymbol(f4Dir_const,	&f4Dir,		sizeof(f4Dir),	0, cudaMemcpyHostToDevice) );
+	#endif	// MOD-BY-LEETEN 01/11/2013-END
 
 LIBCLOCK_END(bIsPrintingTiming);
 
@@ -768,6 +824,7 @@ LIBCLOCK_BEGIN(bIsPrintingTiming);
 				v3B2, v3C2, fDet
 			 );
 
+			#if	0	// MOD-BY-LEETEN 01/11/2013-FROM:
 			CUDA_SAFE_CALL_NO_SYNC( cudaMemcpyToSymbol("f4A_const",	&f4A,	sizeof(f4A),	0, cudaMemcpyHostToDevice) );
 			CUDA_SAFE_CALL_NO_SYNC( cudaMemcpyToSymbol("f4X_const",	&v3X,	3 * sizeof(v3X[0]),	0, cudaMemcpyHostToDevice) );
 			CUDA_SAFE_CALL_NO_SYNC( cudaMemcpyToSymbol("f4Y_const",	&v3Y,	3 * sizeof(v3Y[0]),	0, cudaMemcpyHostToDevice) );
@@ -775,6 +832,15 @@ LIBCLOCK_BEGIN(bIsPrintingTiming);
 			CUDA_SAFE_CALL_NO_SYNC( cudaMemcpyToSymbol("f4B2_const",&v3B2,	3 * sizeof(v3B2[0]),	0, cudaMemcpyHostToDevice) );
 			CUDA_SAFE_CALL_NO_SYNC( cudaMemcpyToSymbol("f4C2_const",&v3C2,	3 * sizeof(v3C2[0]),	0, cudaMemcpyHostToDevice) );
 			CUDA_SAFE_CALL_NO_SYNC( cudaMemcpyToSymbol("fDet_const",&fDet,	sizeof(fDet),	0, cudaMemcpyHostToDevice) );
+			#else	// MOD-BY-LEETEN 01/11/2013-TO:
+			CUDA_SAFE_CALL_NO_SYNC( cudaMemcpyToSymbol(f4A_const,	&f4A,	sizeof(f4A),	0, cudaMemcpyHostToDevice) );
+			CUDA_SAFE_CALL_NO_SYNC( cudaMemcpyToSymbol(f4X_const,	&v3X,	3 * sizeof(v3X[0]),	0, cudaMemcpyHostToDevice) );
+			CUDA_SAFE_CALL_NO_SYNC( cudaMemcpyToSymbol(f4Y_const,	&v3Y,	3 * sizeof(v3Y[0]),	0, cudaMemcpyHostToDevice) );
+			CUDA_SAFE_CALL_NO_SYNC( cudaMemcpyToSymbol(f4Z_const,	&v3Z,	3 * sizeof(v3Z[0]),	0, cudaMemcpyHostToDevice) );
+			CUDA_SAFE_CALL_NO_SYNC( cudaMemcpyToSymbol(f4B2_const,&v3B2,	3 * sizeof(v3B2[0]),	0, cudaMemcpyHostToDevice) );
+			CUDA_SAFE_CALL_NO_SYNC( cudaMemcpyToSymbol(f4C2_const,&v3C2,	3 * sizeof(v3C2[0]),	0, cudaMemcpyHostToDevice) );
+			CUDA_SAFE_CALL_NO_SYNC( cudaMemcpyToSymbol(fDet_const,&fDet,	sizeof(fDet),	0, cudaMemcpyHostToDevice) );
+			#endif	// MOD-BY-LEETEN 01/11/2013-END
 
 			///////////////////////////// invoke the kernel //////////////////////////
 			_CountIntersectingTriangle_kernel<<<v3Grid, v3Blk, 0>>>
