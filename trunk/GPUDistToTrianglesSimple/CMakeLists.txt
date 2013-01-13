@@ -73,7 +73,9 @@ install(
 	)	
 # ADD-BY-LEETEN 04/09/2012-END
 	
-add_dependencies(GPUDistTestSimple GPUDistLib)	
+# MOD-BY-LEETEN 01/12/2013-FROM:	add_dependencies(GPUDistTestSimple GPUDistLib)	
+add_dependencies(${PROJECT_NAME}	GPUDistLib)	
+# MOD-BY-LEETEN 01/12/2013-END
 
 #
 # $Log$
