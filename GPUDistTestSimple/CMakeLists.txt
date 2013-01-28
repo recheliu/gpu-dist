@@ -31,6 +31,12 @@ ADD_EXECUTABLE(${PROJECT_NAME}
 	GPUDistTestSimple_main.cpp
 )
 
+# ADD-BY-LEETEN 01/28/2013-BEGIN
+target_link_libraries(${PROJECT_NAME}
+	GPUDistLib
+	)
+# ADD-BY-LEETEN 01/28/2013-END
+
 # link OpenGL-related libraries
 if(DEFINED WIN32)
 	target_link_libraries(${PROJECT_NAME}
@@ -40,7 +46,6 @@ else()
 	)
 endif()
 
-# the needed libraries
 if(DEFINED WIN32)	# ADD-BY-LEETEN 09/02/2011
 	target_link_libraries(${PROJECT_NAME}
 		debug	libopt_d	optimized	libopt_r
@@ -50,12 +55,15 @@ if(DEFINED WIN32)	# ADD-BY-LEETEN 09/02/2011
 else()
 	target_link_libraries(${PROJECT_NAME}
 		libopt
+		lib3ds-120s # ADD-BY-LEETEN 01/28/2013
 	)
 endif()
 
-target_link_libraries(${PROJECT_NAME}
-	GPUDistLib
-	)
+# # DEL-BY-LEETEN 01/28/2013-BEGIN
+# target_link_libraries(${PROJECT_NAME}
+# 	GPUDistLib
+# 	)
+# # DEL-BY-LEETEN 01/28/2013-END
 
 # DEL-BY-LEETEN 04/17/2012-BEGIN
 # # ADD-BY-LEETEN 04/13/2012-BEGIN
