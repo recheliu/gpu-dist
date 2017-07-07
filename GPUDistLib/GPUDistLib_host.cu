@@ -223,18 +223,10 @@ void
 _GPUDistCompDistFromPointsToPoints
 (
 	size_t uNrOfPoints1,
-#if 0 // TEST-MOD
-	float4 pf4Points1[],
-#else
 	const float4 pf4Points1[],
-#endif
 
 	size_t uNrOfPoints2,
-#if 0	// TEST-MOD
-	float4 pf4Points2[],
-#else
 	const float4 pf4Points2[],
-#endif
 
 	// MOD-BY-LEETEN 07/14/2012-FROM:	float pfDist[]
 	float pfDist[],
@@ -433,25 +425,13 @@ void
 _GPUDistCompDistFromPointsToTriangles
 (
 	size_t uNrOfPoints1,
-#if 0	// TEST-MOD
-	float4 pf4Points1[],
-#else
 	const float4 pf4Points1[],
-#endif
 
 	size_t uNrOfPoints2,
-#if 0	// TEST-MOD
-	float4 pf4Points2[],
-#else
 	const float4 pf4Points2[],
-#endif
 
 	size_t uNrOfTriangles,
-#if 0	// TEST-MOD
-	ulong4 pu4TriangleVertices[],
-#else
 	const ulong4 pu4TriangleVertices[],
-#endif
 
 	bool bIsPrecomputingTrasforms,
 
