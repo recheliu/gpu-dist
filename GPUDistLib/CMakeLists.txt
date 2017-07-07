@@ -136,6 +136,18 @@ install(
 	DESTINATION "include/")
 # ADD-BY-LEETEN 04/04/2012-END
 
+# TEST-ADD-BEGIN
+configure_file (
+  "${CMAKE_CURRENT_SOURCE_DIR}/${PROJECT_NAME}Config.cmake.in"
+  "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
+  @ONLY
+  )
+  
+install(
+	FILES "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
+	DESTINATION ".")
+# TEST-ADD-END
+
 #
 # $Log$
 #
