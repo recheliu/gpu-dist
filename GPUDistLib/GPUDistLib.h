@@ -1,6 +1,5 @@
 #pragma once
 
-// ADD-BY-LEETEN 04/13/2012-BEGIN
 //! Return a boolean whether the distance is the squared of the true disance. 
 /*!
 If the return value is false, the caller should compute the squared too for the distance.
@@ -9,7 +8,6 @@ bool
 BGPUDistIsDistSquaredRoot
 (
 		);
-// ADD-BY-LEETEN 04/13/2012-END
 
 //! Specified whether CPUs (true) or GPUs (false) is used
 void
@@ -37,7 +35,6 @@ _GPUDistComputeDistanceFieldFromPoints
 	float pfDist[]
 );
 
-// ADD-BY-LEETEN 04/07/2012-BEGIN
 //! Compute the distance from each grid point to the input points on CPUs
 void
 _GPUDistComputeDistanceFieldFromPointsByCpu
@@ -60,11 +57,9 @@ _GPUDistCompDistFromPointsToPoints
 	size_t uNrOfPoints2,
 	const float4 pf4Points2[],
 
-	// MOD-BY-LEETEN 07/14/2012-FROM:	float pfDist[]
 	float pfDist[],
 	unsigned int *puNearestPoint2 = NULL,
 	void *pReserved = NULL
-	// MOD-BY-LEETEN 07/14/2012-END
 );
 
 //! Compute the distance from each point in Points1 to the sqeuence of points (Points2) on CPUs.
@@ -77,15 +72,11 @@ _GPUDistCompDistFromPointsToPointsByCpu
 	size_t uNrOfPoints2,
 	const float4 pf4Points2[],
 
-	// MOD-BY-LEETEN 07/14/2012-FROM:	float pfDist[]
 	float pfDist[],
 	unsigned int *puNearestPoint2 = NULL,
 	void *pReserved = NULL
-	// MOD-BY-LEETEN 07/14/2012-END
 );
-// ADD-BY-LEETEN 04/07/2012-END
 
-// ADD-BY-LEETEN 04/13/2012-BEGIN
 //! Compute distance from each point in Points1 to the triangle meshes defined by the points (Points2) and the connectivity on CPUs.
 void 
 _GPUDistCompDistFromPointsToTrianglesByCpu
@@ -121,9 +112,7 @@ _GPUDistCompDistFromPointsToTriangles
 
 	float pfDists[]
 );
-// ADD-BY-LEETEN 04/13/2012-END
 
-// ADD-BY-LEETEN 04/15/2012-BEGIN
 void
 _GPUDistCountIntersectingTriangles
 (
@@ -140,14 +129,12 @@ _GPUDistCountIntersectingTriangles
 
 	float pfCount[]
 );
-// ADD-BY-LEETEN 04/15/2012-END
 
-// ADD-BY-LEETEN 04/05/2012-BEGIN
 //! Initialized GPUDist
 void
 _GPUDistInit();
 
-#if	defined(WITH_CUDPP)	// ADD-BY-LEETEN 04/07/2012
+#if	defined(WITH_CUDPP)	
 //////////////// Functions to compute Hausdorff distance /////////////////////////////
 
 //! Setup the length of the two sequecnes to be compared
@@ -219,11 +206,8 @@ _cuDistComp
 
 	float pfDists[]
 );
-// ADD-BY-LEETEN 04/07/2012-END
 
-#endif	// #if	defined(WITH_CUDPP)	// ADD-BY-LEETEN 04/07/2012
-
-// ADD-BY-LEETEN 04/05/2012-END
+#endif	// #if	defined(WITH_CUDPP)	
 
 /*
 

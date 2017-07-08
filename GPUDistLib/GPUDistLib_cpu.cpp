@@ -1,6 +1,5 @@
 #include "GPUDistLib_internal.h"
 
-// ADD-BY-LEETEN 04/13/2012-BEGIN
 #include <vector_functions.h>
 #include <lib3ds/vector.h>
 
@@ -22,12 +21,10 @@ _CompDistToEdge2D
 	float2 f2AP;
 	f2AP.x = f2P.x - f2A.x;
 	f2AP.y = f2P.y - f2A.y;
-	// MOD-BY-LEETEN 04/13/2012-FROM:	float fAP = sqrtf(f2AP.x * f2AP.x + f2AP.y * f2AP.y);
 	float fAP = f2AP.x * f2AP.x + f2AP.y * f2AP.y;
 	#if	IS_SQRT
 	fAP = sqrtf(fAP);
 	#endif	// #if	IS_SQRT
-	// MOD-BY-LEETEN 04/13/2012-END
 
 	/*
 	Lib3dsVector v3AB;
@@ -38,35 +35,6 @@ _CompDistToEdge2D
 	f2AB.y = f2B.y - f2A.y;
 	float fAB = sqrtf(f2AB.x * f2AB.x + f2AB.y * f2AB.y);
 
-	#if	0	// MOD-BY-LEETEN 04/14/2012-FROM:
-		float fD = 0.0f;
-		if( 0.0f == fAB )
-		{
-			fD = fAP;
-		}
-		else
-		{
-			// float fT = lib3ds_vector_dot(v3AB, v3AP) / fAB;	// fT: |AP| cos(theta)
-			float fT = (f2AB.x * f2AP.x + f2AB.y * f2AP.y) / fAB;
-			if( 0.0f <= fT && fT <= fAB )
-			{
-				fD = sqrtf(fAP * fAP - fT * fT);
-			}
-			else
-			{
-				/*
-				ib3ds_vector_sub(v3BP, v3B, v3P);
-				float fBP = lib3ds_vector_length( v3BP );
-				*/
-				float2 f2BP;
-				f2BP.x = f2P.x - f2B.x;
-				f2BP.y = f2P.y - f2B.y;
-				float fBP = sqrtf(f2BP.x * f2BP.x + f2BP.y * f2BP.y);
-
-				fD = min(fAP, fBP);
-			}
-		}
-	#else	// MOD-BY-LEETEN 04/14/2012-TO:
 	float fD = fAP;
 	if( 0.0f < fAB )
 	{
@@ -98,7 +66,6 @@ _CompDistToEdge2D
 			fD = min(fAP, fBP);
 		}
 	}
-	#endif	// MOD-BY-LEETEN 04/14/2012-END
 	*pfDist = fD;
 }
 
@@ -114,12 +81,10 @@ _CompDistToEdge
 {
 	Lib3dsVector v3AP;
 	lib3ds_vector_sub(v3AP, v3P, v3A);
-	// MOD-BY-LEETEN 04/16/2012-FROM:	float fAP = lib3ds_vector_length( v3AP );
 	float fAP = v3AP[0] * v3AP[0] + v3AP[1] * v3AP[1] + v3AP[2] * v3AP[2];
 	#if		IS_SQRT
 	fAP = sqrtf(fAP);
 	#endif	// #if	IS_SQRT
-	// MOD-BY-LEETEN 04/16/2012-END
 
 	Lib3dsVector v3AB;
 	lib3ds_vector_sub(v3AB, v3B, v3A);
@@ -132,12 +97,6 @@ _CompDistToEdge
 	}
 	else
 	{
-		#if	0	// MOD-BY-LEETEN 04/16/2012-FROM:
-			float fT = lib3ds_vector_dot(v3AB, v3AP) / (fAB * fAB);	// fT: |AP| cos(theta)
-			if( 0.0f <= fT && fT <= 1.0f )
-			{
-				fD = sqrtf(fAP * fAP - fT * fT);
-		#else		// MOD-BY-LEETEN 04/16/2012-TO:
 		float fT = lib3ds_vector_dot(v3AB, v3AP) / fAB;	// fT: |AP| cos(theta)
 		if( 0.0f <= fT && fT <= fAB )
 		{
@@ -146,20 +105,17 @@ _CompDistToEdge
 			#else	// #if	IS_SQRT		
 			fD = fAP - fT * fT;
 			#endif	// #if	IS_SQRT
-		#endif		// MOD-BY-LEETEN 04/16/2012-END
 		}
 		else
 		{
 			Lib3dsVector v3BP;
 			lib3ds_vector_sub(v3BP, v3P, v3B);
-			// MOD-BY-LEETEN 04/16/2012-FROM:			float fBP = lib3ds_vector_length( v3BP );
 			float fBP = v3BP[0] * v3BP[0] + v3BP[1] * v3BP[1] + v3BP[2] * v3BP[2];
 			#if	IS_SQRT
 			fBP = sqrtf(fBP * fBP - fT * fT);
 			#else	// #if	IS_SQRT		
 			fD = fBP - fT * fT;
 			#endif	// #if	IS_SQRT
-			// MOD-BY-LEETEN 04/16/2012-END
 
 			fD = min(fAP, fBP);
 		}
@@ -251,7 +207,6 @@ _CompDistToTriangle
 		fDet = fPreCompDet;
 	}
 
-	// ADD-BY-LEETEN 04/17/2012-BEGIN
 	float fDist = (float)HUGE_VAL;
 	if( 0.0f == fDet )
 	{
@@ -269,7 +224,6 @@ _CompDistToTriangle
 	}
 	else
 	{
-	// ADD-BY-LEETEN 04/17/2012-END
 
 	// and transform P to the new coordinate 
 	Lib3dsVector v3PA;
@@ -293,41 +247,6 @@ _CompDistToTriangle
 	float fS = (+v3C2[2] * v3P2[1] - v3C2[1] * v3P2[2]) / fDet;
 	float fT = (-v3B2[2] * v3P2[1] + v3B2[1] * v3P2[2]) / fDet;
 
-	// DEL-BY-LEETEN 04/17/2012-FROM:	float fDist = (float)HUGE_VAL;
-
-	#if	0	// MOD-BY-LEETEN 04/14/2012-FROM:
-		if( 
-			0.0f <= fS && fS <= 1.0f &&
-			0.0f <= fT && fT <= 1.0f &&
-			fS + fT <= 1.0f	)
-		{
-			fDist = fabsf(v3P2[0]);
-		}
-		else
-		{
-			float fD;
-			_CompDistToEdge2D(
-				make_float2(v3P2[1], v3P2[2]),
-				make_float2(0.0f, 0.0f),
-				make_float2(v3B2[1], v3B2[2]),
-				&fD);
-			fDist = min(fDist, fD);
-			_CompDistToEdge2D(
-				make_float2(v3P2[1], v3P2[2]),
-				make_float2(0.0f, 0.0f),
-				make_float2(v3C2[1], v3C2[2]),
-				&fD);
-			fDist = min(fDist, fD);
-			_CompDistToEdge2D(
-				make_float2(v3P2[1], v3P2[2]),
-				make_float2(v3B2[1], v3B2[2]),
-				make_float2(v3C2[1], v3C2[2]),
-				&fD);
-			fDist = min(fDist, fD);
-
-			fDist = sqrtf(fDist * fDist + v3P2[0] * v3P2[0]);
-		}
-	#else	// MOD-BY-LEETEN 04/14/2012-TO:
 	fDist = fabsf(v3P2[0]);
 	#if !IS_SQRT
 	fDist *= fDist;
@@ -361,9 +280,8 @@ _CompDistToTriangle
 		fDist = fDist + fD;
 		#endif	// #if IS_SQRT
 	}
-	#endif	// MOD-BY-LEETEN 04/14/2012-END
 
-	}	// ADD-BY-LEETEN 04/17/2012
+	}	
 	*pfDist = fDist;
 }
 
@@ -458,7 +376,6 @@ _GPUDistCompDistFromPointsToTrianglesByCpu
 	LIBCLOCK_END(bIsPrintingTiming);
 	LIBCLOCK_PRINT(bIsPrintingTiming);
 }
-// ADD-BY-LEETEN 04/13/2012-END
 
 void
 _GPUDistComputeDistanceFieldFromPointsByCpu
@@ -505,11 +422,9 @@ _GPUDistCompDistFromPointsToPointsByCpu
 	size_t uNrOfPoints2,
 	const float4 pf4Points2[],
 
-	// MOD-BY-LEETEN 07/14/2012-FROM:	float pfDists[]
 	float pfDists[],
 	unsigned int *puNearestPoint2,
 	void *pReserved
-	// MOD-BY-LEETEN 07/14/2012-END
 )
 {
 	LIBCLOCK_INIT(bIsPrintingTiming, __FUNCTION__);
@@ -517,32 +432,26 @@ _GPUDistCompDistFromPointsToPointsByCpu
 	for(size_t p1 = 0; p1 < uNrOfPoints1; p1++)
 	{
 		float fMinDist = (float)HUGE_VAL;
-		// ADD-BY-LEETEN 07/14/2012-BEGIN
 		unsigned int uNearestPoint2 = 0;
-		// ADD-BY-LEETEN 07/14/2012-END
 		for(size_t p2 = 0; p2 < uNrOfPoints2; p2++)
 		{
 			float fDx = pf4Points2[p2].x - pf4Points1[p1].x;
 			float fDy = pf4Points2[p2].y - pf4Points1[p1].y;
 			float fDz = pf4Points2[p2].z - pf4Points1[p1].z;
 			float fDist = fDx * fDx + fDy * fDy + fDz * fDz;
-			// MOD-BY-LEETEN 07/14/2012-FROM:			fMinDist = min(fMinDist, fDist);
 			if( fDist < fMinDist )
 			{
 				fMinDist = fDist;
 				uNearestPoint2 = p2;
 			}
-			// MOD-BY-LEETEN 07/14/2012-END
 
 		}
 #if	IS_SQRT
 		fMinDist = sqrtf(fMinDist);
 #endif
 		pfDists[p1] = fMinDist;
-		// ADD-BY-LEETEN 07/14/2012-BEGIN
 		if( puNearestPoint2 )
 			puNearestPoint2[p1] = uNearestPoint2;
-		// ADD-BY-LEETEN 07/14/2012-END
 	}
 	LIBCLOCK_END(bIsPrintingTiming);
 	LIBCLOCK_PRINT(bIsPrintingTiming);

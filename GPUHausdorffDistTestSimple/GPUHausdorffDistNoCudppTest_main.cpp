@@ -17,9 +17,7 @@ main(int argn, char* argv[])
 	// setup GPUDistLib
 	_GPUDistPrintTiming(true);
 
-	// MOD-BY-LEETEN 04/07/2012-FROM:	int iNrOfTrials = 100;
 	int iNrOfTrials = 1;
-	// MOD-BY-LEETEN 04/07/2012-END
 	for(int le = 18; le <= 18; le++)
 	{
 		int iLength = 1 << le;	// 4096;
@@ -48,11 +46,9 @@ main(int argn, char* argv[])
 		pfDists.alloc(pf4Points1.USize());
 		float fDist1To2;
 
-		// ADD-BY-LEETEN 07/14/2012-BEGIN
 		TBuffer<unsigned int> puNearestPoint2;
 		puNearestPoint2.alloc(pf4Points1.USize());
 		uint2	u2PointPair;
-		// ADD-BY-LEETEN 07/14/2012-END
 
 		//////////////////////////// test GPU //////////////////////////////
 		_GPUDistUseCpu(false);	// GPU
@@ -66,16 +62,13 @@ main(int argn, char* argv[])
 				pf4Points2.USize(),
 				&pf4Points2[0],
 
-				// MOD-BY-LEETEN 07/14/2012-FROM:				&pfDists[0]
 				&pfDists[0],
 				&puNearestPoint2[0],
 				NULL
-				// MOD-BY-LEETEN 07/14/2012-END
 			);
 
 			fDist1To2 = -(float)HUGE_VAL;
 			for(size_t p = 0; p < pfDists.USize(); p++)
-			// MOD-BY-LEETEN 07/14/2012-FROM:				fDist1To2 = max(fDist1To2, pfDists[p]);
 			{
 				float fD = pfDists[p];
 				if( fD > fDist1To2 )
@@ -84,10 +77,8 @@ main(int argn, char* argv[])
 					u2PointPair = make_uint2(p, puNearestPoint2[p]);
 				}
 			}
-			// MOD-BY-LEETEN 07/14/2012-END
 			fDist1To2 = sqrtf(fDist1To2);
 		}
-		// MOD-BY-LEETEN 07/14/2012-FROM:		LOG_VAR(fDist1To2);
 		LOG(printf("Dist from P1[%d] = (%f, %f, %f) to P2[%d] = (%f, %f, %f) = %f",
 			u2PointPair.x, 
 			pf4Points1[u2PointPair.x].x, 
@@ -98,7 +89,6 @@ main(int argn, char* argv[])
 			pf4Points2[u2PointPair.y].y, 
 			pf4Points2[u2PointPair.y].z, 
 			fDist1To2));
-		// MOD-BY-LEETEN 07/14/2012-END
 
 		//////////////////////////// test CPU //////////////////////////////
 		_GPUDistUseCpu(true);	// CPU
@@ -112,16 +102,13 @@ main(int argn, char* argv[])
 				pf4Points2.USize(),
 				&pf4Points2[0],
 
-				// MOD-BY-LEETEN 07/14/2012-FROM:	&pfDists[0]
 				&pfDists[0],
 				&puNearestPoint2[0],
 				NULL
-				// MOD-BY-LEETEN 07/14/2012-END
 			);
 
 			fDist1To2 = -(float)HUGE_VAL;
 			for(size_t p = 0; p < pfDists.USize(); p++)
-			// MOD-BY-LEETEN 07/14/2012-FROM:				fDist1To2 = max(fDist1To2, pfDists[p]);
 			{
 				float fD = pfDists[p];
 				if( fD > fDist1To2 )
@@ -130,10 +117,8 @@ main(int argn, char* argv[])
 					u2PointPair = make_uint2(p, puNearestPoint2[p]);
 				}
 			}
-			// MOD-BY-LEETEN 07/14/2012-END
 			fDist1To2 = sqrtf(fDist1To2);
 		}
-		// MOD-BY-LEETEN 07/14/2012-FROM:		LOG_VAR(fDist1To2);
 		LOG(printf("Dist from P1[%d] = (%f, %f, %f) to P2[%d] = (%f, %f, %f) = %f",
 			u2PointPair.x, 
 			pf4Points1[u2PointPair.x].x, 
@@ -144,7 +129,6 @@ main(int argn, char* argv[])
 			pf4Points2[u2PointPair.y].y, 
 			pf4Points2[u2PointPair.y].z, 
 			fDist1To2));
-		// MOD-BY-LEETEN 07/14/2012-END
 	}
 
 	return 0;

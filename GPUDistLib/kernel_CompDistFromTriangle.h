@@ -3,10 +3,8 @@
 #include "device_Vector.h"
 
 __constant__ float4	f4A_const;
-// ADD-BY-LEETEN 04/17/2012-BEGIN
 __constant__ float4	f4B_const;
 __constant__ float4	f4C_const;
-// ADD-BY-LEETEN 04/17/2012-END
 __constant__ float4	f4X_const;
 __constant__ float4	f4Y_const;
 __constant__ float4	f4Z_const;
@@ -37,12 +35,10 @@ _CompDistToEdge2D_device
 	float2 f2AP = make_float2(
 		f4P.y - f4A.y,
 		f4P.z - f4A.z);
-	// MOD-BY-LEETEN 04/13/2012-FROM:	float fAP = sqrtf(f2AP.x * f2AP.x + f2AP.y * f2AP.y);
 	float fAP = f2AP.x * f2AP.x + f2AP.y * f2AP.y;
 	#if	IS_SQRT
 	fAP = sqrtf(fAP);
 	#endif	// #if	IS_SQRT
-	// MOD-BY-LEETEN 04/13/2012-END
 
 	float2 f2AB = make_float2(
 		f4B.y - f4A.y,
@@ -61,29 +57,24 @@ _CompDistToEdge2D_device
 			float2 f2BP = make_float2(	
 				f4P.y - f4B.y,
 				f4P.z - f4B.z);
-			// MOD-BY-LEETEN 04/13/2012-FROM:	float fBP = sqrtf(f2BP.x * f2BP.x + f2BP.y * f2BP.y);
 			float fBP = f2BP.x * f2BP.x + f2BP.y * f2BP.y;
 			#if	IS_SQRT
 			fBP = sqrtf(fBP);
 			#endif	// #if	IS_SQRT
-			// MOD-BY-LEETEN 04/13/2012-END
 			fD = fBP;
 		}
 		else
-			// MOD-BY-LEETEN 04/13/2012-FROM:	fD = sqrtf(fAP * fAP - fAP2 * fAP2);
 			#if	IS_SQRT
 			fD = sqrtf(fAP * fAP - fAP2 * fAP2);
 			#else	// #if	IS_SQRT
 			fD = fAP - fAP2 * fAP2;
 			#endif	// #if	IS_SQRT
-			// MOD-BY-LEETEN 04/13/2012-END			
 	}
 
-	fD = max(fD, 0.0f);	// ADD-BY-LEETEN 04/24/2012
+	fD = max(fD, 0.0f);	
 	*pfDist = fD;
 }
 
-// ADD-BY-LEETEN 04/17/2012-BEGIN
 __device__
 void
 _CompDistToEdge_device
@@ -140,10 +131,9 @@ _CompDistToEdge_device
 			#endif	// #if	IS_SQRT
 	}
 
-	fD = max(fD, 0.0f);	// ADD-BY-LEETEN 04/24/2012
+	fD = max(fD, 0.0f);	
 	*pfDist = fD;
 }
-// ADD-BY-LEETEN 04/17/2012-END
 
 __global__ 
 void 
@@ -162,7 +152,6 @@ _CompDistFromTriangle_kernel
 	{
 		float4 f4P = pf4Points1_device[uPoint1];
 
-		// ADD-BY-LEETEN 04/17/2012-BEGIN
 		float fDist = 0.0f;
 		if( !fDet_const )
 		{
@@ -173,7 +162,6 @@ _CompDistFromTriangle_kernel
 		}
 		else
 		{
-		// ADD-BY-LEETEN 04/17/2012-END
 
 		// and transform P to the new coordinate 
 		float4 f4PA = make_float4(
@@ -199,14 +187,10 @@ _CompDistFromTriangle_kernel
 		float fS = (+f4C2_const.z * f4P2.y - f4C2_const.y * f4P2.z) / fDet_const;
 		float fT = (-f4B2_const.z * f4P2.y + f4B2_const.y * f4P2.z) / fDet_const;
 
-		// MOD-BY-LEETEN 04/17/2012-FROM:		float fDist = fabsf(f4P2.x);
 		fDist = fabsf(f4P2.x);
-		// MOD-BY-LEETEN 04/17/2012-END:
-		// ADD-BY-LEETEN 04/13/2012-BEGIN
 		#if	!IS_SQRT	
 		fDist *= fDist;
 		#endif	// #if	!IS_SQRT	
-		// ADD-BY-LEETEN 04/13/2012-END
 		if( !(
 			0.0f < fS && fS < 1.0f &&
 			0.0f < fT && fT < 1.0f &&
@@ -218,15 +202,13 @@ _CompDistFromTriangle_kernel
 			_CompDistToEdge2D_device(f4P2,	f4B2_const,	f4C2_const,	&fD1);	fDistToEdge2D = fD1;
 			_CompDistToEdge2D_device(f4P2,	f4Zero,		f4B2_const,	&fD2);	fDistToEdge2D = min(fDistToEdge2D, fD2);
 			_CompDistToEdge2D_device(f4P2,	f4Zero,		f4C2_const,	&fD3);	fDistToEdge2D = min(fDistToEdge2D, fD3);
-			// ADD-BY-LEETEN 04/13/2012-BEGIN
 			#if	!IS_SQRT	
 			fDist = fDistToEdge2D + fDist;
 			#else	// #if	!IS_SQRT	
-			// ADD-BY-LEETEN 04/13/2012-END
 			fDist = sqrtf(fDistToEdge2D * fDistToEdge2D + fDist * fDist);
-			#endif	// #if	!IS_SQRT	// ADD-BY-LEETEN 04/13/2012
+			#endif	// #if	!IS_SQRT	
 		}
-		}	// ADD-BY-LEETEN 04/17/2012
+		}	
 
 		if( uTriangle > 0 )
 		{
@@ -237,7 +219,6 @@ _CompDistFromTriangle_kernel
 	}
 }
 
-// ADD-BY-LEETEN 04/15/2012-BEGIN
 __constant__ float4 f4Dir_const;
 __constant__ float fThreshold_const = 0.00001f;
 
@@ -343,7 +324,6 @@ _CountIntersectingTriangle_kernel
 		pfCounts_device[uPoint] += fNewCount;
 	}
 }
-// ADD-BY-LEETEN 04/15/2012-END
 
 
 /*

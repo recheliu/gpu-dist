@@ -1,7 +1,7 @@
-#include <math.h>	// ADD-BY-LEETEN 04/07/2012
+#include <math.h>	
 #include <vector_functions.h>
 
-#include "libclock.h"	// ADD-BY-LEETEN 04/07/2012
+#include "libclock.h"
 #include "liblog.h"
 #include "libbuf.h"
 #include "libbuf3d.h"
@@ -11,7 +11,7 @@
 int 
 main(int argn, char* argv[])
 {
-	_GPUDistInit();	// ADD-BY-LEETEN 04/07/2012
+	_GPUDistInit();	
 
 	TBuffer3D<float> p3DfDist;
 	for(int testi = 0, le = 4; le < 8; le++)
@@ -19,7 +19,6 @@ main(int argn, char* argv[])
 		size_t uLength = 1<<le;
 		p3DfDist.alloc(uLength, uLength, uLength);
 
-		// ADD-BY-LEETEN 04/07/2012-BEGIN
 		TBuffer<float4> pf4Coords;
 		pf4Coords.alloc(p3DfDist.USize());
 		for(size_t	v = 0,		d = 0; d < p3DfDist.iDepth; d++)
@@ -27,7 +26,6 @@ main(int argn, char* argv[])
 				for(size_t	w = 0; w < p3DfDist.iWidth; w++, v++)
 					pf4Coords[v] = make_float4(
 						(float)w, (float)h, (float)d, 1.0f);
-		// ADD-BY-LEETEN 04/07/2012-END
 
 		for(int pe = 0; pe < 4; pe++, testi++)
 		{
@@ -48,19 +46,6 @@ main(int argn, char* argv[])
 
 			// GPU
 			_GPUDistUseCpu(false);
-			#if	0	// DEL-BY-LEETEN 04/07/2012-BEGIN
-				if( !testi )
-					_GPUDistComputeDistanceFieldFromPoints
-					(
-						pf4Points.USize(),
-						&pf4Points[0],
-						p3DfDist.iWidth,
-						p3DfDist.iHeight,
-						p3DfDist.iDepth,
-						&p3DfDist[0]
-					);
-			#endif		// DEL-BY-LEETEN 04/07/2012-END
-
 			_GPUDistComputeDistanceFieldFromPoints
 			(
 				pf4Points.USize(),
@@ -71,7 +56,6 @@ main(int argn, char* argv[])
 				&p3DfDist[0]
 			);
 
-			// ADD-BY-LEETEN 04/07/2012-BEGIN
 			// another version: explictily send the particle coordinates
 			_GPUDistCompDistFromPointsToPoints
 			(
@@ -107,7 +91,6 @@ main(int argn, char* argv[])
 				&pf4Points[0],
 				&p3DfDist[0]
 			);
-			// ADD-BY-LEETEN 04/07/2012-END
 		}
 	}
 	// p3DfDist._Save("dist");

@@ -3,13 +3,13 @@
 #define _USE_MATH_DEFINES
 #include <math.h>
 
-#include <assert.h>	// ADD-BY-LEETEN 03/28/2012
+#include <assert.h>	
 
 #if	defined(WITH_CUDPP)
 	#include "cudpp.h"
 #endif
 
-#include <lib3ds/vector.h>	// ADD-BY-LEETEN 04/15/2012
+#include <lib3ds/vector.h>	
 
 #ifdef	 WIN32
 	#undef	 WIN32
@@ -30,18 +30,14 @@
 #define GRID_DIM_Y	128
 #define BATCH_SIZE	(BLOCK_DIM_X * BLOCK_DIM_Y * GRID_DIM_X * GRID_DIM_Y)
 
-// ADD-BY-LEETEN 04/07/2012-BEGIN
 //! Decide whether the squared root is computed
 #define IS_SQRT		0
-// ADD-BY-LEETEN 04/07/2012-END
 
-// ADD-BY-LEETEN 04/07/2012-BEGIN
 //! Decide whether multiple points are computed in a single kernel call
 #define IS_COMP_MULTI_POINTS	1
 #if	IS_COMP_MULTI_POINTS
 	#define MAX_NR_OF_COMP_POINTS	128
 #endif	// #if	IS_COMP_MULTI_POINTS
-// ADD-BY-LEETEN 04/07/2012-END
 
 #if	defined(WITH_CUDPP)
 struct CConfigPlan
@@ -65,7 +61,6 @@ extern CUDPPHandle cudpp;
 extern bool bIsUsingCpu;
 extern bool bIsPrintingTiming;
 
-// ADD-BY-LEETEN 04/15/2012-BEGIN
 void
 _CompTransform
 (
@@ -79,7 +74,6 @@ _CompTransform
 	Lib3dsVector v3C2,
 	float& fDet
  );
-// ADD-BY-LEETEN 04/15/2012-END
 
 /*
 
