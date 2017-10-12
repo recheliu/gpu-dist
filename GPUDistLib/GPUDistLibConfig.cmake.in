@@ -1,13 +1,21 @@
 find_package(CUDA)
 
 LIST(APPEND GPUDistLib_INCLUDE_DIRS 
-    "@CMAKE_INSTALL_PREFIX@/include"
+    # TEST-MOD: "@CMAKE_INSTALL_PREFIX@/include"
+    "${GPUDistLib_DIR}/include"
+    # TEST-MOD-END
     "${CUDA_TOOLKIT_ROOT_DIR}/include"
     )
 
 LIST(APPEND GPUDistLib_LIBRARIES 
-    debug @CMAKE_INSTALL_PREFIX@/lib/GPUDistLib_d.lib 
-    optimized @CMAKE_INSTALL_PREFIX@/lib/GPUDistLib_r.lib)
+    # # TEST-MOD-FROM:
+    # debug @CMAKE_INSTALL_PREFIX@/lib/GPUDistLib_d.lib 
+    # optimized @CMAKE_INSTALL_PREFIX@/lib/GPUDistLib_r.lib)
+    # # TEST-MOD-TO:
+    debug "${GPUDistLib_DIR}/lib/GPUDistLib_d.lib"
+    optimized "${GPUDistLib_DIR}/lib/GPUDistLib_r.lib"
+    )
+    # # TEST-MOD-END
     
 LIST(APPEND GPUDistLib_LIBRARIES
     ${CUDA_LIBRARIES})
